@@ -1,0 +1,8 @@
+{"timestamp": "2026-10-18T12:00:00Z", "type": "session_meta", "payload": {"id": "synthetic-codex-session", "originator": "codex_cli_rs", "cli_version": "synthetic-schema-demo", "model_provider": "synthetic-provider"}}
+{"timestamp": "2026-10-18T12:00:00Z", "type": "turn_context", "payload": {"model": "synthetic-model", "turn_id": "synthetic-turn"}}
+{"timestamp": "2026-10-18T12:00:01Z", "type": "response_item", "payload": {"type": "message", "role": "assistant", "phase": "commentary", "content": [{"type": "output_text", "text": "I will inspect the synthetic local fixture."}]}}
+{"timestamp": "2026-10-18T12:00:02Z", "type": "response_item", "payload": {"type": "function_call", "id": "synthetic-call-item", "call_id": "synthetic-call-1", "name": "inspect_fixture", "arguments": "{\"path\":\"fixture.json\"}"}}
+{"timestamp": "2026-10-18T12:00:03Z", "type": "response_item", "payload": {"type": "function_call_output", "id": "synthetic-result-item", "call_id": "synthetic-call-1", "output": "{\"ok\":true,\"value\":42}"}}
+{"timestamp": "2026-10-18T12:00:04Z", "type": "response_item", "payload": {"type": "custom_tool_call", "id": "synthetic-custom-item", "call_id": "synthetic-call-2", "name": "check_fixture", "input": "assert fixture.value == 42"}}
+{"timestamp": "2026-10-18T12:00:05Z", "type": "response_item", "payload": {"type": "custom_tool_call_output", "id": "synthetic-custom-result", "call_id": "synthetic-call-2", "output": "Synthetic check passed."}}
+{"timestamp": "2026-10-18T12:00:06Z", "type": "response_item", "payload": {"type": "message", "role": "assistant", "phase": "final_answer", "content": [{"type": "output_text", "text": "The synthetic fixture contains value 42."}]}}

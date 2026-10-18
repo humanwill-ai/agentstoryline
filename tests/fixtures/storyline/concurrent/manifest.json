@@ -1,0 +1,10 @@
+{
+  "schema_version": "0.1",
+  "run_id": "synthetic-storyline-concurrency",
+  "agent": {"name": "Synthetic agent", "version": "authored-fixture"},
+  "started_at": "2026-10-11T10:00:00Z",
+  "completeness": {
+    "status": "partial",
+    "gaps": ["Newly authored UI fixture, not an agent run. Includes a missing endpoint and conflicting source clocks intentionally."]
+  }
+}

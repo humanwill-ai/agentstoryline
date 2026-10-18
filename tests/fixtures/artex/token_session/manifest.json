@@ -1,0 +1,135 @@
+{
+  "format_version": 3,
+  "created_at": "2026-10-10T12:00:10Z",
+  "task_id": 23,
+  "exploration_id": 42,
+  "source_task_ids": [],
+  "hosts": [
+    "127.0.0.1"
+  ],
+  "exclusive_hosts": [],
+  "exclusive_asset_ids": [],
+  "tables": {
+    "tasks": [
+      {
+        "id": 23,
+        "exploration_id": 42,
+        "name": "Newly authored session dependency demo",
+        "description": "Synthetic local data; no source runs or model outputs",
+        "goal": "Obtain a fresh session and read protected fixture",
+        "status": "completed",
+        "created_at": "2026-10-10T12:00:00Z"
+      }
+    ],
+    "activity": [
+      {
+        "id": 11,
+        "exploration_id": 42,
+        "node_id": 7,
+        "worker": "worker-1",
+        "kind": "tool_use",
+        "tool": "Bash",
+        "tool_use_id": "synthetic-session-call",
+        "is_error": false,
+        "summary": "Newly authored synthetic local fixture",
+        "detail": "{\"command\": \"curl -sS http://127.0.0.1:8765/session\"}",
+        "metadata": {},
+        "created_at": "2026-10-10T12:00:02+00:00",
+        "input_tokens": null,
+        "output_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "main_seg": null
+      },
+      {
+        "id": 12,
+        "exploration_id": 42,
+        "node_id": 7,
+        "worker": "worker-1",
+        "kind": "tool_result",
+        "tool": "Bash",
+        "tool_use_id": "synthetic-session-call",
+        "is_error": false,
+        "summary": "Newly authored synthetic local fixture",
+        "detail": "{\"token\": \"recorded-demo-token\", \"expires_in\": 30}",
+        "metadata": {},
+        "created_at": "2026-10-10T12:00:03+00:00",
+        "input_tokens": null,
+        "output_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "main_seg": null
+      },
+      {
+        "id": 13,
+        "exploration_id": 42,
+        "node_id": 7,
+        "worker": "worker-1",
+        "kind": "tool_use",
+        "tool": "Bash",
+        "tool_use_id": "synthetic-protected-call",
+        "is_error": false,
+        "summary": "Newly authored synthetic local fixture",
+        "detail": "{\"command\": \"curl -sS -H \\\"Authorization: Bearer recorded-demo-token\\\" http://127.0.0.1:8765/protected\"}",
+        "metadata": {},
+        "created_at": "2026-10-10T12:00:05+00:00",
+        "input_tokens": null,
+        "output_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "main_seg": null
+      },
+      {
+        "id": 14,
+        "exploration_id": 42,
+        "node_id": 7,
+        "worker": "worker-1",
+        "kind": "tool_result",
+        "tool": "Bash",
+        "tool_use_id": "synthetic-protected-call",
+        "is_error": false,
+        "summary": "Newly authored synthetic local fixture",
+        "detail": "{\"ok\": true, \"message\": \"Synthetic protected fixture\"}",
+        "metadata": {},
+        "created_at": "2026-10-10T12:00:06+00:00",
+        "input_tokens": null,
+        "output_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "main_seg": null
+      }
+    ],
+    "llm_records": [],
+    "tool_usage": [
+      {
+        "id": 21,
+        "ts": "2026-10-10T12:00:02Z",
+        "tool_key": "Bash",
+        "agent_key": "worker",
+        "task_id": 23,
+        "exploration_id": 42,
+        "intent_id": 7,
+        "session_id": "exp42-worker-i7"
+      }
+    ],
+    "exploration_nodes": [
+      {
+        "id": 7,
+        "exploration_id": 42,
+        "kind": "intent",
+        "title": "Synthetic token dependency"
+      }
+    ]
+  },
+  "streamed_tables": {
+    "llm_records": "database/llm_records.ndjson"
+  },
+  "data_counts": {
+    "tasks": 1,
+    "activity": 4,
+    "llm_records": 3,
+    "tool_usage": 1,
+    "exploration_nodes": 1
+  },
+  "aggregate_stats": {}
+}

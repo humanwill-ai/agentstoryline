@@ -1,0 +1,117 @@
+{
+  "format_version": 3,
+  "created_at": "2026-10-18T12:00:06Z",
+  "task_id": 23,
+  "exploration_id": 42,
+  "source_task_ids": [],
+  "hosts": [
+    "127.0.0.1"
+  ],
+  "exclusive_hosts": [],
+  "exclusive_asset_ids": [],
+  "tables": {
+    "tasks": [
+      {
+        "id": 23,
+        "exploration_id": 42,
+        "name": "Synthetic fixture inspection",
+        "description": "Newly authored demo; no real runtime or model output.",
+        "goal": "Inspect the synthetic local fixture",
+        "status": "completed",
+        "created_at": "2026-10-18T12:00:00Z"
+      }
+    ],
+    "exploration_nodes": [
+      {
+        "id": 7,
+        "exploration_id": 42,
+        "kind": "intent",
+        "title": "Read synthetic fixture"
+      }
+    ],
+    "activity": [
+      {
+        "id": 11,
+        "exploration_id": 42,
+        "node_id": 7,
+        "worker": "worker-1",
+        "main_seg": null,
+        "kind": "tool_use",
+        "tool": "Bash",
+        "tool_use_id": "synthetic-inspect-1",
+        "is_error": false,
+        "summary": "Synthetic local fixture inspection",
+        "detail": "Synthetic display summary; structured evidence is in metadata.",
+        "metadata": {
+          "traceforge": {
+            "version": 1,
+            "model_call_id": "synthetic-model-call-1",
+            "session_id": "synthetic-artex-session",
+            "recording_enabled": true,
+            "tool_input": {
+              "command": "cat synthetic-workspace/fixture.json"
+            },
+            "observed_at": "2026-10-18T12:00:02Z"
+          }
+        },
+        "created_at": "2026-10-18T12:00:02Z"
+      },
+      {
+        "id": 12,
+        "exploration_id": 42,
+        "node_id": 7,
+        "worker": "worker-1",
+        "main_seg": null,
+        "kind": "tool_result",
+        "tool": "Bash",
+        "tool_use_id": "synthetic-inspect-1",
+        "is_error": false,
+        "summary": "Synthetic local fixture inspection",
+        "detail": "Synthetic display summary; structured evidence is in metadata.",
+        "metadata": {
+          "traceforge": {
+            "version": 1,
+            "model_call_id": "synthetic-model-call-1",
+            "session_id": "synthetic-artex-session",
+            "recording_enabled": true,
+            "tool_result": {
+              "type": "tool_result",
+              "tool_use_id": "synthetic-inspect-1",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"ok\":true,\"value\":42}"
+                }
+              ],
+              "is_error": false
+            },
+            "observed_at": "2026-10-18T12:00:03Z"
+          }
+        },
+        "created_at": "2026-10-18T12:00:03Z"
+      }
+    ],
+    "findings": [
+      {
+        "id": 31,
+        "task_id": 23,
+        "exploration_id": 42,
+        "title": "Synthetic fixture value is 42",
+        "description": "Demonstration observation only; not a security finding.",
+        "created_at": "2026-10-18T12:00:05Z"
+      }
+    ],
+    "llm_records": []
+  },
+  "data_counts": {
+    "tasks": 1,
+    "exploration_nodes": 1,
+    "activity": 2,
+    "findings": 1,
+    "llm_records": 1
+  },
+  "streamed_tables": {
+    "llm_records": "database/llm_records.ndjson"
+  },
+  "aggregate_stats": {}
+}

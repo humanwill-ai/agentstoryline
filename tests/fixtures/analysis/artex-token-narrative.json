@@ -1,0 +1,33 @@
+{
+  "run_id": "artex-task-23",
+  "stages": [
+    {
+      "id": "session-acquisition",
+      "title": "Acquire a session token from the local fixture",
+      "summary": "The activity records a Bash invocation requesting http://127.0.0.1:8765/session and a matching result containing recorded-demo-token with expires_in=30. The next model request includes those same invocation and result blocks, so the exported evidence supports that this token appeared in the agent's subsequent context. The activity result is a recorded source report; it does not independently establish HTTP execution, approval, server state, or the token's actual validity period. The export is partial and does not preserve the model response tool-use block that generated the invocation.",
+      "event_ids": [
+        "artex.activity.11",
+        "artex.activity.12",
+        "artex.llm_records.102.request",
+        "artex.llm_records.102.history.1.0",
+        "artex.llm_records.102.history.2.0"
+      ],
+      "basis": "interpretation"
+    },
+    {
+      "id": "protected-request",
+      "title": "Use the recorded token in a protected request",
+      "summary": "A later Bash invocation requests http://127.0.0.1:8765/protected with Authorization: Bearer recorded-demo-token. Its matching activity result reports ok=true and Synthetic protected fixture; the subsequent model request repeats the invocation/result, and the recorded model response states that the fixture returned ok=true. Reuse of the exact token value suggests a procedural dependency on session acquisition. That dependency is an interpretation from arguments and chronology, not an explicit recorded cross-call dependency, and the model's statement repeats source evidence rather than independently proving target behavior. A replay should acquire a fresh token and bind it explicitly to this request; the recorded token is synthetic evidence, not a reusable live credential. Missing raw wire capture and generating tool-use response blocks limit this reconstruction.",
+      "event_ids": [
+        "artex.activity.12",
+        "artex.activity.13",
+        "artex.activity.14",
+        "artex.llm_records.103.request",
+        "artex.llm_records.103.history.3.0",
+        "artex.llm_records.103.history.4.0",
+        "artex.llm_records.103.response"
+      ],
+      "basis": "interpretation"
+    }
+  ]
+}

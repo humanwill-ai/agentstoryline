@@ -1,0 +1,5 @@
+--- a/fixture.json
++++ b/fixture.json
+@@ -1 +1 @@
+-{"value":0}
++{"value":42}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1",
+  "run_id": "synthetic-session-replay",
+  "source": {"description": "Manually authored synthetic plan; not automatic inferred replay", "synthetic": true},
+  "allowed_origins": ["http://127.0.0.1:8765"],
+  "steps": [
+    {
+      "id": "session",
+      "operation": "http.request",
+      "method": "GET",
+      "url": "http://127.0.0.1:8765/session",
+      "expect": {"status": 200},
+      "extract": {"token": {"source": "json", "path": ["token"]}},
+      "evidence_refs": ["artex.activity.12"],
+      "provenance": "authored"
+    },
+    {
+      "id": "protected",
+      "operation": "http.request",
+      "method": "GET",
+      "url": "http://127.0.0.1:8765/protected",
+      "headers": {"Authorization": {"template": "Bearer {token}", "bindings": {"token": {"$ref": "session.token"}}}},
+      "expect": {"status": 200},
+      "extract": {"authorized": {"source": "json", "path": ["authorized"]}},
+      "evidence_refs": ["artex.activity.14"],
+      "dependencies": [{"event_id": "artex.activity.12", "provenance": "inferred"}],
+      "provenance": "authored"
+    }
+  ]
+}

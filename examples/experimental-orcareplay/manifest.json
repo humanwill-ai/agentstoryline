@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3.0",
+  "run_id": "run_abcd12",
+  "created_at": "2026-10-18T12:00:00Z",
+  "orca_version": "synthetic-schema-demo",
+  "argv": [
+    "synthetic-agent"
+  ],
+  "cwd": "/synthetic/workspace",
+  "adapter": {
+    "id": "synthetic",
+    "version": "0.1"
+  },
+  "counts": {
+    "events": 8,
+    "blobs": 2
+  },
+  "integrity": {
+    "events_sha256": "c7a1af4df813b79bfafa952d1bc05a681bcbab57b408599cd9b8dd3f79be5f9b",
+    "blob_count": 2
+  },
+  "provenance": {
+    "synthetic": true,
+    "license": "Apache-2.0",
+    "description": "Newly authored constants; no upstream sample or runtime capture."
+  }
+}
