@@ -28,6 +28,10 @@ The previously used `mixkit-long-pop-2358.wav` is not included in the source dis
 
 Source: https://mixkit.co/license/modal/sfxFree/ (reviewed 2026-10-18).
 
+The owner-supplied `docs/assets/AgentStorylineMusic.mov` is distributed as supplied,
+including its music, original sound and metadata. This media is not covered by the
+source-code license grant; its soundtrack is not represented as generated-tone-only.
+
 ## Names and compatibility identifiers
 
 Provider and product names identify interoperability; they do not imply endorsement. Legacy `traceforge` format identifiers, headers and file suffixes remain for compatibility. No rights to third-party trademarks are granted by this project's license.

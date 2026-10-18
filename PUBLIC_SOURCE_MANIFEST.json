@@ -1,5 +1,5 @@
 {
-  "content_sha256": "0ee66437837aabeaf775b2173f629cf6fe44b7a0f55d4a2ae3b21abe1e58e081",
+  "content_sha256": "89210ae3d2b6396f02064a2541fc27e05ffa43f2833a36df9837863afc0eb723",
   "file_count": 164,
   "files": [
     {
@@ -23,9 +23,9 @@
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
     },
     {
-      "bytes": 11229,
+      "bytes": 11219,
       "path": "README.md",
-      "sha256": "d058ce140e47dbe9c46bbec7708cb186c951c8a06a24944ec55c2fc34b5f5b7b"
+      "sha256": "7f53f63f488a7c6accb7ff207f4efe7841dd6302338fcbe3011b7451cb1c1ca6"
     },
     {
       "bytes": 3645,
@@ -33,9 +33,9 @@
       "sha256": "ebae8e4bfc2abd9c89dd3f777f4af29f8554e7e45ebbfc0ef71a3d4a23908cae"
     },
     {
-      "bytes": 3405,
+      "bytes": 3659,
       "path": "THIRD_PARTY_NOTICES.md",
-      "sha256": "5bdfa1734b49cc8421a44ff09cd0d35916952d4eff0ea97d043b5267451249ea"
+      "sha256": "507f28e69cd8879b56b3d37cdd9a0c70d1e4d6b0b3523bd52483e253751eee25"
     },
     {
       "bytes": 0,
@@ -213,9 +213,9 @@
       "sha256": "6795abb20b0e3fc6e83c42a6b8e73a8c915322e77352b0443fdd3f31e2a79a87"
     },
     {
-      "bytes": 12650,
+      "bytes": 12925,
       "path": "docs/PUBLIC_SOURCE_AUDIT.md",
-      "sha256": "5ec80a1985e450fe32f07fccbe9853858ec1f5f038932f31a39e3b2053a34b76"
+      "sha256": "b1f605d7cda4d0d058941195bb4205f8700205dc697d62cf6e82b0c9cd1afe61"
     },
     {
       "bytes": 3081,
@@ -233,9 +233,9 @@
       "sha256": "c663e24e4c23ac7ff8b103b19f4d5550a2735303df091dd6c429ad09c7ea93e3"
     },
     {
-      "bytes": 21631,
+      "bytes": 22249,
       "path": "docs/RELEASE_VALIDATION.md",
-      "sha256": "777098e4e2c9acdb73478682ed849bafe732f581104f92ae84e0f6e7e994418d"
+      "sha256": "55a4d73b2dea6bd7d622bf3f10cda4948afd0909a81cec0158f4deedea108f8b"
     },
     {
       "bytes": 9898,
@@ -248,14 +248,14 @@
       "sha256": "57465a0ac7d91bfcdc1597c2733897d530df769fbf44c12f449fdb948518d73f"
     },
     {
+      "bytes": 26625005,
+      "path": "docs/assets/AgentStorylineMusic.mov",
+      "sha256": "fe17cb6716cffdeac64d4a8226d1139d30a2a25df1fe11777c7bff859a3e5cf4"
+    },
+    {
       "bytes": 435197,
       "path": "docs/assets/agentstoryline-chat.png",
       "sha256": "b43d1570cf67fecc32b08138da5748086c2e76728372b7920459909a0ca533ce"
-    },
-    {
-      "bytes": 25880829,
-      "path": "docs/assets/agentstoryline-demo.mp4",
-      "sha256": "cc8cf281ccacf6a47d2d5a492a624f231849ac4398258fd45d1d1937d3a4fb57"
     },
     {
       "bytes": 519448,
@@ -355,7 +355,7 @@
     {
       "bytes": 10811,
       "path": "scripts/build_public_source.py",
-      "sha256": "5dc96e9960dd750919982a75a3bb2afb0be0897d5c207b69ccdf2c4be5049f8e"
+      "sha256": "0fb3fc3964a790a286cbd8fbab982371be6d55b367266ff8d29c9246c005f60d"
     },
     {
       "bytes": 5534,
@@ -827,6 +827,6 @@
   "omitted_optional_files": [],
   "release_version": "0.1.0",
   "scope": "Reviewed current working files only; no Git history or publication.",
-  "total_bytes": 29913510,
+  "total_bytes": 30658823,
   "version": 1
 }

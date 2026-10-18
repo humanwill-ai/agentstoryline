@@ -108,17 +108,14 @@ are in its generated `PUBLIC_SOURCE_MANIFEST.json`; see the
 [public source audit](PUBLIC_SOURCE_AUDIT.md).
 
 Chrome 155.0.8059.80 loaded the viewer at 1920×1080 in Spotlight and rendered
-the source material used by the checked-in release video. The final owner-edited
-preview is 34.708 seconds at 1920×1080 and 30 fps, with H.264 video and stereo
-48 kHz AAC audio. Short title cards introduce a full-frame playback from the
-retained authorized Artex run against an isolated synthetic target. The visible
-segment shows credential and token milestones, an exploitation attempt and
-protected-document retrieval with the complete chat panel in frame. The
-recording's credential and token values are not shown, and its source bytes are
-not copied into the public snapshot. The public MP4 was losslessly remuxed from
-the supplied MOV to remove its QuickTime timecode, attached cover image and
-personal author metadata. It now contains only the intended video and audio
-streams. Full decoding and representative-frame inspection passed.
+source material for the demo. The current owner-supplied `AgentStorylineMusic.mov`
+is 34.700 seconds, 1920×1080 H.264 with stereo 48 kHz AAC audio. It replaces the
+previous remuxed MP4 and is copied byte-for-byte at the owner's explicit request.
+Music, notification audio, title cards, QuickTime timecode, attached cover image,
+and original metadata are preserved. The embedded author name is retained as
+an explicit exception to the earlier metadata-stripping policy. Full decoding
+and representative-frame inspection passed; no credential or token value was
+observed in the sampled frames. Raw source-recording bytes remain excluded.
 
 During Smart reading holds, the storyline cursor glides toward the next visibly
 separated recorded position using viewing pace; near-coincident source positions
@@ -307,7 +304,7 @@ cursor merge; the combined source is covered by the second run plus its targeted
 follow-up, not claimed as a third all-green full-suite run.
 
 
-## Final owner-edited media checkpoint — 2026-10-18
+## Previous owner-edited media checkpoint — 2026-10-18 (superseded)
 
 The owner-supplied 34.7-second launch edit replaces the earlier continuous
 editing capture as the checked-in demo. A complete decode and representative
@@ -355,3 +352,17 @@ for this release, not passed. Private vulnerability reporting is still disabled
 on the intended destination and must be enabled as part of authorized publication.
 The final documentation revision is staged twice and checked again before the
 local release commit; exact hashes and outcomes stay in the private handoff.
+
+
+## Current unchanged music edit — 2026-10-18
+
+The owner explicitly requested replacing the prior video with
+`docs/assets/AgentStorylineMusic.mov` as supplied. The current file is 26,625,005
+bytes, SHA-256 `fe17cb6716cffdeac64d4a8226d1139d30a2a25df1fe11777c7bff859a3e5cf4`.
+The file was not remuxed, transcoded, normalized or stripped of metadata.
+The original author/artist metadata remains; the earlier clean-metadata and
+generated-tone-only findings apply to the superseded MP4, not this music edit.
+The package allowlist and README now select the MOV and exclude the old MP4.
+Source behavior is unchanged. Focused packaging checks and deterministic staging
+validate the new media references; the preceding 505-test application result
+remains the code-validation baseline. Publication is still on hold.

@@ -59,7 +59,7 @@ concurrent filesystem mutation.
 | Current user documentation | Include README, RELEASE_SCOPE_V0_1, RELEASE_VALIDATION, this audit, BRANDING, OTLP_ADAPTER, ORCAREPLAY_ADAPTER, STORYLINE, REPLAY and GENERATED_WORKFLOW. The release scope is the primary current guide. |
 | Release and contribution materials | Include CHANGELOG, CONTRIBUTING, SECURITY, RELEASE_NOTES_V0_1, PUBLICATION_CHECKLIST and RELEASE_COMMANDS. These describe the prepared/unreleased candidate, synthetic contribution policy, pending private-reporting setup, remaining browser check and separate owner-controlled publication gates. They contain no credentials, raw recordings or private integration pins. |
 | Mascot PNGs | Include the four exact Sleepy Replicant master/export paths. BRANDING documents owner selection and OpenAI image-generation provenance; THIRD_PARTY_NOTICES inventories them. |
-| Release screenshots/video | Only docs/assets/agentstoryline-overview.png, agentstoryline-chat.png and agentstoryline-demo.mp4 may be copied if present. The PNGs come from the authored synthetic examples. The reviewed video is a bounded highlight montage from the authorized isolated synthetic-target Artex run; it excludes raw credentials, token values and source-recording bytes. Review every replacement independently before distribution. |
+| Release screenshots/video | Only docs/assets/agentstoryline-overview.png, agentstoryline-chat.png and AgentStorylineMusic.mov may be copied if present. The PNGs come from the authored synthetic examples. The reviewed video is a bounded highlight montage from the authorized isolated synthetic-target Artex run; it excludes raw credentials, token values and source-recording bytes. Review every replacement independently before distribution. |
 | Synthetic fixture files | Include the exact seven files under tests/fixtures. The Artex manifest says “Synthetic local data; no source runs or model outputs”; the interpretation README explicitly distinguishes authored interpretation from provider output; the concurrent storyline manifest labels itself an authored UI fixture. The recorded-demo-token is an inert synthetic value. |
 | Public examples | Include the exact self-contained generator, example README, the generated Artex/Codex/OTLP inputs, a newly authored OrcaReplay trajectory directory/native `.orca.zip`/plain tar, and their regression tests. These are newly authored synthetic data; no raw trace is used as an input. |
 | Test modules and local utilities | Include explicitly named tests and synthetic/local-only scripts, including verify_release_candidate.py and test_release_candidate.py. Tests with credential-like canaries intentionally exercise redaction; these strings are authored fixtures, not credentials. No test is run by staging or release verification. |
@@ -68,7 +68,7 @@ concurrent filesystem mutation.
 | Adapter/history guides needing separate public editing | Exclude ARCHITECTURE, ARTEX_ADAPTER, ARTEX_ARCHIVE_COMPATIBILITY, CODEX_ADAPTER, CHAT_EXPLANATIONS, FLOW_VIEWER and ARTEX_VIEWER_V1. These contain private integration pins, local evidence locations, retained-run details, or links to internal planning. Their useful feature descriptions are covered by the current release scope. |
 | Runtime data and Git history | Exclude all work/, recordings/, Git internals, caches, virtual environments, local state, generated private HTML/portable recordings, screenshots, videos, transcripts, attachments, provider output and execution logs except individually reviewed synthetic example/media paths. Tracked status alone never grants inclusion. |
 | Credentials and service material | No environment files, keys, credential stores, private research, paid-provider run evidence, external datasets or provider-generated transcripts are admitted. The optional API client code and documentation are original implementation, not a bundled paid service or captured provider result. |
-| Audio | No WAV or Mixkit asset is allowlisted. Public demos use the built-in generated notification tone; user-supplied sound and old exports need their own rights review. |
+| Audio | No WAV or Mixkit asset is allowlisted. The current owner-supplied music MOV is included unchanged; its soundtrack is not claimed to be generated-tone-only or licensed as application source. |
 
 OrcaReplay implementation, including its bounded ZIP reader, adapter tests,
 guide and deterministic directory/native-ZIP/plain-tar samples are individually
@@ -141,8 +141,11 @@ research references were found. Synthetic redaction canaries intentionally
 contain example paths, addresses and tokens; they are authored test inputs.
 Archive ownership is blank/zero and ZIP comments/extra fields are empty. The
 mascot's C2PA provenance retains OpenAI/ChatGPT attribution and generated content
-IDs without user identity. The demo MP4 contains standard encoder/container
-metadata after removal of the editor's personal author fields.
+IDs without user identity. That review covered the previous MP4 after removal of personal author fields.
+The current owner-supplied music MOV supersedes that asset and deliberately
+retains its original author/artist name, Sergio Giucastro, and QuickTime metadata
+under the owner's explicit instruction to use it as is. The prior clean-metadata
+finding does not apply to this replacement.
 
 The intended release commit uses a GitHub noreply address and a clean root created
 from this exact allowlisted snapshot. No development Git history is imported.

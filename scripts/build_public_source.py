@@ -186,7 +186,7 @@ web/viewer_import.py
 OPTIONAL_FILES = (
     "docs/assets/agentstoryline-overview.png",
     "docs/assets/agentstoryline-chat.png",
-    "docs/assets/agentstoryline-demo.mp4",
+    "docs/assets/AgentStorylineMusic.mov",
 )
 FORBIDDEN_PARTS = frozenset({
     ".git", ".aws", ".ssh", ".codex", ".agents", ".venv", "node_modules",

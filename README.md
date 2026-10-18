@@ -8,7 +8,7 @@ AgentStoryline is a local-first agent-trace viewer: import a supported recording
 
 <img src="docs/assets/agentstoryline-chat.png" alt="AgentStoryline evidence detail beside the synthetic recorded conversation" width="900">
 
-[Watch the current playback demo](docs/assets/agentstoryline-demo.mp4). The 34.7-second edited preview combines short title cards with a full-frame Spotlight playback from a retained Artex recording against an authorized isolated synthetic target. It shows the storyline and chat advancing through credential and token milestones, an exploitation attempt and protected-document retrieval. It does not expose the recorded credential or token value, and the source recording is not distributed. The supplied edit retains the project-generated notification tones from the reviewed source capture.
+[Watch the current playback demo](docs/assets/AgentStorylineMusic.mov). The 34.7-second edited preview combines short title cards with a full-frame Spotlight playback from a retained Artex recording against an authorized isolated synthetic target. It shows the storyline and chat advancing through credential and token milestones, an exploitation attempt and protected-document retrieval. It does not expose the recorded credential or token value, and the source recording is not distributed. The owner-supplied music edit is included unchanged, with its original audio and metadata.
 
 Python 3.10+ and the standard library are sufficient for the viewer. Native Artex `.tar.zst` imports additionally require an installed `zstd` executable; `.tar`, extracted exports, Codex rollout JSONL, OTLP JSON and experimental OrcaReplay ZIP/directory/plain tar imports do not. No model provider is required to import or play a recording.
 
