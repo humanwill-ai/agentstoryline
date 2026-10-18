@@ -1,7 +1,8 @@
 # v0.1.0 publication checklist
 
 This checklist separates source publication from a version tag, GitHub Release,
-deployment or release workflow. No tagged release has been created.
+deployment or release workflow. The `v0.1.0` tag and GitHub Release were
+published on 2026-10-18 with explicit owner authorization.
 
 ## Current owner decision — 2026-10-18
 
@@ -13,8 +14,8 @@ local backup refs must not be pushed. New commits use GitHub noreply metadata.
 The current second-browser check is waived for v0.1.0, not passed. GitHub private
 vulnerability reporting stays disabled by explicit owner decision and is not a
 release prerequisite. No private reporting channel is currently established.
-Version tagging, GitHub Release creation, deployment and workflow enablement
-remain separate actions requiring authorization.
+The owner subsequently authorized the `v0.1.0` tag and GitHub Release; both are
+published. Deployment and workflow enablement remain outside that authorization.
 
 ## Required before publication
 
@@ -54,24 +55,26 @@ remain separate actions requiring authorization.
 
 ## Owner decision and step 6 execution
 
-- [ ] Give the owner the exact candidate snapshot hash, proposed `v0.1.0` tag,
+- [x] Give the owner the exact candidate snapshot hash, proposed `v0.1.0` tag,
   intended repository/destination, release text and assets, final validation
   results, and any unresolved limitations for review.
-- [x] Obtain explicit authorization for source-history replacement only; other actions remain pending:
+- [x] Obtain explicit authorization for source-history replacement, the v0.1.0 tag and GitHub Release; deployment/workflows remain excluded:
   commit/push, tagging, release publication, visibility change, deployment or
   workflow enablement. Record the authorized scope before acting. No permission
   for one action implies permission for the others.
-- [ ] If publishing repository history is proposed, complete a separate
+- [x] Publish only the independently audited clean source history; for other history, complete a separate
   history/secret/rights audit first. Snapshot review does not cover private Git
   history; do not substitute the development checkout for the reviewed package.
-- [ ] Execute only the authorized step 6 actions against the reviewed candidate.
+- [x] Execute only the authorized step 6 actions against the reviewed candidate.
   Verify artifact hashes and destination visibility, preserve licenses/notices
   and source identifiers, and report the actual resulting URLs and version.
-- [ ] Update prepared/unreleased wording and dates only when the corresponding
+- [x] Update prepared/unreleased wording and dates only when the corresponding
   release action has occurred, under its authorization. Record the actual
   outcome and any remaining work; do not mark unchecked gates complete by
   inference.
 
-Source-history replacement is authorized for the reviewed candidate. No approval
-for a tag, GitHub Release, deployment or workflow enablement is implied. Record
-the actual pushed commit and verification outside the self-identifying package.
+Source-history replacement, the `v0.1.0` tag and GitHub Release are complete.
+The tag remains fixed at `a52cc57022f06812709488d88d8f242051f11415`.
+[Published release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0).
+Deployment and workflow enablement were not performed. Detailed receipts remain
+outside the self-identifying package.

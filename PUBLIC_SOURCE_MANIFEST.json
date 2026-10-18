@@ -1,5 +1,5 @@
 {
-  "content_sha256": "aee176619aa758d4dc4073b4a8252d9e18ac157ed5df6f724cf94a776caadcb3",
+  "content_sha256": "e8ef00002fcb16ba85848fab89de8d119f690687a1b897fdcef3b4aa4d9eae93",
   "file_count": 164,
   "files": [
     {
@@ -8,9 +8,9 @@
       "sha256": "e7a9c22d3d11c6107cf4a5db4d3e62ef8a89d400e35f11104608b7a9b87f33bf"
     },
     {
-      "bytes": 2061,
+      "bytes": 2119,
       "path": "CHANGELOG.md",
-      "sha256": "d8a6a2ef7106ca42680b67964f2cdf45b8ce607132bfa17fb28d40dd4652736e"
+      "sha256": "24205f5ed838d5326d79b2009963881c777f423ad2fec9ffe5627c4273bf56cc"
     },
     {
       "bytes": 5572,
@@ -23,14 +23,14 @@
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
     },
     {
-      "bytes": 11184,
+      "bytes": 11218,
       "path": "README.md",
-      "sha256": "c86ad464b6b90672598e05e3d21d3e1e60a4707d17ea8530691aa9787ad8ac14"
+      "sha256": "46f0bb2c1409fa2571566c178f19c7e7cd6361113cf96585880975652410d87b"
     },
     {
-      "bytes": 3337,
+      "bytes": 3339,
       "path": "SECURITY.md",
-      "sha256": "1b8be647885b95070512391042f235c1f4b78c776d8baa479d82340e9bde13c2"
+      "sha256": "59083cd7178f618b1ed95e3046eb7c3f927324384b73edd6e520205dfeb8e7fd"
     },
     {
       "bytes": 3659,
@@ -208,9 +208,9 @@
       "sha256": "d91d7215a76416fbedb4d923544c6d2892920fd234e4f7b7fbb8f1e42898bdf3"
     },
     {
-      "bytes": 5003,
+      "bytes": 5287,
       "path": "docs/PUBLICATION_CHECKLIST.md",
-      "sha256": "42dd28c553add04c2289677bcb3228703ddd7100bc25332de8b9cf16d5990c6b"
+      "sha256": "b15985096703f769238f38277f2817d4ddefef81c1c910fa6f9e02915f62cff7"
     },
     {
       "bytes": 13525,
@@ -223,19 +223,19 @@
       "sha256": "35e4b97c3dc64705ff53da7760168e92aff80e429fba748944008b25e4db91be"
     },
     {
-      "bytes": 7482,
+      "bytes": 7510,
       "path": "docs/RELEASE_NOTES_V0_1.md",
-      "sha256": "3b0a89609b72fcfacac567c4300dde8e94c280344a612fa1ec1c5bff6ce3f4d3"
+      "sha256": "87b79760b11226bc3f21bf76b37e5bd2729cbe050b0d9cf1c4f8b13d473a27d1"
     },
     {
-      "bytes": 10259,
+      "bytes": 10292,
       "path": "docs/RELEASE_SCOPE_V0_1.md",
-      "sha256": "a52c9b0507d3a0e8302ed30e40da823f4e59895d610d03193d6a8c58c686b481"
+      "sha256": "36fc47deef6c0fc001dc60f2465ccec2161ef5d3f9bb3ada86d173562128043d"
     },
     {
-      "bytes": 22953,
+      "bytes": 23852,
       "path": "docs/RELEASE_VALIDATION.md",
-      "sha256": "1660799f361d4e7f8b932c945e2261331af0096262b1b27a3599d0fc2b67217a"
+      "sha256": "1e387343f27ca3175e01ead2999717cfd3a6f3eff4de7bd3427ca6511ab82823"
     },
     {
       "bytes": 9898,
@@ -827,6 +827,6 @@
   "omitted_optional_files": [],
   "release_version": "0.1.0",
   "scope": "Reviewed current working files only; no Git history or publication.",
-  "total_bytes": 30659883,
+  "total_bytes": 30661221,
   "version": 1
 }

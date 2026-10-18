@@ -53,7 +53,7 @@ validated descriptions remain interpretations rather than verified facts.
 
 ## Version and maintenance status
 
-v0.1 is the initial viewer source preview. No tagged release or independent
+v0.1.0 is the initial viewer release, published on 2026-10-18. No independent
 security review is implied by this policy. There is no maintenance commitment
 for older prototypes, experimental execution modules or independent source-agent
 projects. Report issues against the current code with the precise revision and

@@ -1,9 +1,10 @@
 # Changelog
 
-## v0.1.0 — source preview, tagged release pending
+## v0.1.0 — 2026-10-18
 
-AgentStoryline's first release scope is a local-first agent-trace viewer. No
-tagged release date, GitHub Release or deployment is claimed.
+AgentStoryline's first public release is a local-first agent-trace viewer.
+[Download v0.1.0](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0).
+This is a local application; no hosted deployment is included.
 
 - Import supported Artex TaskArchiveSnapshot formats 1–3 and portable
   `.traceforge.json` recordings. Add experimental native Codex rollout JSONL

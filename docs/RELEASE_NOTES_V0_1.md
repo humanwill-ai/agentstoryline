@@ -1,11 +1,11 @@
 # AgentStoryline v0.1.0 release notes
 
-**Source preview; tagged release pending.** v0.1 is a local-first agent-trace
-viewer for importing recordings, following recorded activity, inspecting evidence
-and optionally adding descriptions. These notes describe the public source scope;
-no version tag or GitHub Release is claimed.
+**Released 2026-10-18.** v0.1 is a local-first agent-trace viewer for importing
+recordings, following recorded activity, inspecting evidence and optionally
+adding descriptions. [Download the release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0).
 
-The proposed semantic release label/tag is `v0.1.0`; the product scope is v0.1.
+The release tag is `v0.1.0`, pointing to source commit
+`a52cc57022f06812709488d88d8f242051f11415`; the product scope is v0.1.
 
 ## What is included
 

@@ -379,3 +379,20 @@ Source publication does not create a version tag or GitHub Release. This update
 changes status/policy documentation only; application behavior and the exact
 owner-supplied MOV bytes remain unchanged. Final package and remote verification
 are recorded outside the self-identifying manifest.
+
+
+## v0.1.0 publication — 2026-10-18
+
+After explicit owner confirmation, the annotated `v0.1.0` tag and public GitHub
+Release were created at reviewed commit
+`a52cc57022f06812709488d88d8f242051f11415`.
+[Published release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0).
+The tag remains immutable; this later main-branch documentation update records
+the completed action and changes no application behavior.
+
+GitHub reports the release as published, not draft or prerelease. Uploaded video
+and manifest SHA-256 digests match their local reviewed bytes. The owner-supplied
+music MOV is unchanged. Private vulnerability reporting remains disabled. No
+hosted deployment or workflow enablement occurred. Prior 505-test application
+and packaging results apply to the released code; the post-release documentation
+package is separately checked for inventory, hashes and local links.

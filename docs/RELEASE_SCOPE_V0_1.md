@@ -1,8 +1,9 @@
 # AgentStoryline v0.1 release scope
 
-Scope frozen for the v0.1.0 source preview on 2026-10-18. Source publication is
-authorized separately from a version tag, GitHub Release, deployment or release
-workflow. No tagged release is claimed by this document.
+Scope frozen for v0.1.0, released on 2026-10-18. The
+[GitHub Release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0)
+contains the reviewed local viewer source and demo media. No hosted deployment
+or release workflow is included.
 
 ## Product boundary
 
