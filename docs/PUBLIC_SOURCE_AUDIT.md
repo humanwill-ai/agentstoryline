@@ -57,7 +57,7 @@ concurrent filesystem mutation.
 | Contracts | Include the two schemas and two contract guides; no vendored adapter runtime is included. |
 | License and notices | Require the full Apache-2.0 LICENSE and THIRD_PARTY_NOTICES.md; copy unchanged. The original-code grant does not relicense imported recordings or external assets. |
 | Current user documentation | Include README, RELEASE_SCOPE_V0_1, RELEASE_VALIDATION, this audit, BRANDING, OTLP_ADAPTER, ORCAREPLAY_ADAPTER, STORYLINE, REPLAY and GENERATED_WORKFLOW. The release scope is the primary current guide. |
-| Release and contribution materials | Include CHANGELOG, CONTRIBUTING, SECURITY, RELEASE_NOTES_V0_1, PUBLICATION_CHECKLIST and RELEASE_COMMANDS. These describe the prepared/unreleased candidate, synthetic contribution policy, pending private-reporting setup, remaining browser check and separate owner-controlled publication gates. They contain no credentials, raw recordings or private integration pins. |
+| Release and contribution materials | Include CHANGELOG, CONTRIBUTING, SECURITY, RELEASE_NOTES_V0_1, PUBLICATION_CHECKLIST and RELEASE_COMMANDS. These describe the prepared/unreleased candidate, synthetic contribution policy, the owner-disabled private reporting setting, waived second-browser check and separate owner-controlled publication gates. They contain no credentials, raw recordings or private integration pins. |
 | Mascot PNGs | Include the four exact Sleepy Replicant master/export paths. BRANDING documents owner selection and OpenAI image-generation provenance; THIRD_PARTY_NOTICES inventories them. |
 | Release screenshots/video | Only docs/assets/agentstoryline-overview.png, agentstoryline-chat.png and AgentStorylineMusic.mov may be copied if present. The PNGs come from the authored synthetic examples. The reviewed video is a bounded highlight montage from the authorized isolated synthetic-target Artex run; it excludes raw credentials, token values and source-recording bytes. Review every replacement independently before distribution. |
 | Synthetic fixture files | Include the exact seven files under tests/fixtures. The Artex manifest says “Synthetic local data; no source runs or model outputs”; the interpretation README explicitly distinguishes authored interpretation from provider output; the concurrent storyline manifest labels itself an authored UI fixture. The recorded-demo-token is an inert synthetic value. |
@@ -152,3 +152,14 @@ from this exact allowlisted snapshot. No development Git history is imported.
 Existing public teaser history is a separate review scope; replacing or deleting
 it is not part of source staging. The owner waived the second-browser gate for
 v0.1.0, without claiming compatibility validation.
+
+
+## Authorized clean source history — 2026-10-18
+
+The owner authorized replacing the existing public teaser history with the clean
+release history. The source-only checkout has no private development ancestry.
+A local-only backup preserves the old teaser before the guarded branch update;
+backup refs are not uploaded. Version tags and GitHub Releases are separate.
+Private vulnerability reporting remains disabled by owner decision, and the
+second-browser check is waived, not passed. The explicitly supplied music MOV
+continues to retain its original author metadata unchanged.

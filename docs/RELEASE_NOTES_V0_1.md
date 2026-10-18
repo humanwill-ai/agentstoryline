@@ -1,9 +1,9 @@
 # AgentStoryline v0.1.0 release notes
 
-**Prepared, unreleased.** v0.1 is a local-first agent-trace viewer for importing
-recordings, following recorded activity, inspecting evidence and optionally
-adding descriptions. The repository remains private; these notes do not
-authorize publication or claim a release has occurred.
+**Source preview; tagged release pending.** v0.1 is a local-first agent-trace
+viewer for importing recordings, following recorded activity, inspecting evidence
+and optionally adding descriptions. These notes describe the public source scope;
+no version tag or GitHub Release is claimed.
 
 The proposed semantic release label/tag is `v0.1.0`; the product scope is v0.1.
 

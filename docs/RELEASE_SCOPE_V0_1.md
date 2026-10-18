@@ -1,8 +1,8 @@
 # AgentStoryline v0.1 release scope
 
-Scope frozen for release preparation on 2026-10-18. The repository remains
-private. This document does not authorize a commit, push, public release,
-deployment, or release workflow.
+Scope frozen for the v0.1.0 source preview on 2026-10-18. Source publication is
+authorized separately from a version tag, GitHub Release, deployment or release
+workflow. No tagged release is claimed by this document.
 
 ## Product boundary
 

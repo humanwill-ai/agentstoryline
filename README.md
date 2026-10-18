@@ -2,7 +2,7 @@
 
 <img src="web/assets/sleepy-replicant-512.png" alt="Sleepy Replicant — AgentStoryline’s robot detective with a coffee cup" width="160" height="160">
 
-AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.1 is a viewer release scope; playback never executes recorded commands or tools.** This repository remains a private development prototype. Release preparation does not authorize publication. Source agents and telemetry systems remain independent projects. See the [v0.1 release scope](docs/RELEASE_SCOPE_V0_1.md).
+AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.1 is a viewer release scope; playback never executes recorded commands or tools.** This is the v0.1.0 source preview; a tagged release has not yet been published. Source agents and telemetry systems remain independent projects. See the [v0.1 release scope](docs/RELEASE_SCOPE_V0_1.md).
 
 <img src="docs/assets/agentstoryline-overview.png" alt="AgentStoryline Spotlight theme showing a synthetic Artex storyline and recorded conversation" width="900">
 
@@ -14,7 +14,7 @@ Python 3.10+ and the standard library are sufficient for the viewer. Native Arte
 
 `agentstoryline.py` is the preferred command. The compatibility entry point `traceforge.py`, existing `.traceforge.json` files, bundle schema identifiers and local saved-description state remain supported. Compatibility identifiers and original source evidence retain their existing names.
 
-The prepared, unreleased application version is `0.1.0`:
+The source-preview application version is `0.1.0`:
 
 ```bash
 python3 agentstoryline.py --version

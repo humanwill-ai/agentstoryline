@@ -11,14 +11,11 @@ the [release scope](docs/RELEASE_SCOPE_V0_1.md).
 **Do not open a public issue, pull request or discussion containing sensitive
 vulnerability details, recordings or credentials.**
 
-Before public release, maintainers must enable GitHub private vulnerability
-reporting for the public repository. This document does not establish that it is
-enabled. Once enabled, use **Security → Report a vulnerability** in the
-[AgentStoryline repository](https://github.com/humanwill-ai/agentstoryline/security)
-to submit a private report. If that option is unavailable, no private reporting
-route is established by this policy; keep the details private until maintainers
-provide one. Do not use a public issue as a fallback for the sensitive report.
-No security contact email or response-time commitment is currently designated.
+GitHub private vulnerability reporting is disabled by the owner's decision.
+No private reporting channel or security contact email is currently designated.
+Do not submit sensitive details through public issues or pull requests; retain
+them privately until maintainers establish a private channel. No response-time
+commitment is made.
 
 Include the affected version or source revision, input format, operating system,
 reproduction steps, expected and observed behavior, and the potential impact.
@@ -56,8 +53,8 @@ validated descriptions remain interpretations rather than verified facts.
 
 ## Version and maintenance status
 
-v0.1 is the initial viewer release scope under preparation. No published release
-or security review is implied by this policy. There is no maintenance commitment
+v0.1 is the initial viewer source preview. No tagged release or independent
+security review is implied by this policy. There is no maintenance commitment
 for older prototypes, experimental execution modules or independent source-agent
 projects. Report issues against the current code with the precise revision and
 feature identified; maintainers will assess applicability and any remediation.

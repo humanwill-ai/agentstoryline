@@ -349,7 +349,8 @@ metadata.
 The owner authorized local commits and preparation through step 6 while retaining
 a separate publication confirmation. The current second-browser check is waived
 for this release, not passed. Private vulnerability reporting is still disabled
-on the intended destination and must be enabled as part of authorized publication.
+on the intended destination. The owner subsequently chose to keep it disabled;
+it is no longer a publication prerequisite.
 The final documentation revision is staged twice and checked again before the
 local release commit; exact hashes and outcomes stay in the private handoff.
 
@@ -366,3 +367,15 @@ The package allowlist and README now select the MOV and exclude the old MP4.
 Source behavior is unchanged. Focused packaging checks and deterministic staging
 validate the new media references; the preceding 505-test application result
 remains the code-validation baseline. Publication is still on hold.
+
+
+## Source-publication authorization — 2026-10-18
+
+The owner authorized replacing the public teaser history with the reviewed clean
+source history. Private vulnerability reporting remains disabled by the owner's
+explicit decision, and the second-browser check remains waived. A local-only
+backup of the old teaser history is retained before a guarded branch replacement.
+Source publication does not create a version tag or GitHub Release. This update
+changes status/policy documentation only; application behavior and the exact
+owner-supplied MOV bytes remain unchanged. Final package and remote verification
+are recorded outside the self-identifying manifest.

@@ -1,9 +1,9 @@
 # Changelog
 
-## v0.1.0 — prepared, unreleased
+## v0.1.0 — source preview, tagged release pending
 
 AgentStoryline's first release scope is a local-first agent-trace viewer. No
-release date, tag, publication or deployment is claimed.
+tagged release date, GitHub Release or deployment is claimed.
 
 - Import supported Artex TaskArchiveSnapshot formats 1–3 and portable
   `.traceforge.json` recordings. Add experimental native Codex rollout JSONL

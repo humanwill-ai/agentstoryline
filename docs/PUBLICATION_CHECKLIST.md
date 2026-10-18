@@ -1,19 +1,20 @@
 # v0.1.0 publication checklist
 
-This is the handoff from step 5 release-material preparation to step 6
-owner-controlled publication work. **Nothing has been released.** Preparation
-does not itself authorize commits, pushes, tags, visibility changes, releases,
-deployment or release workflows. Keep this repository private until the owner
-explicitly authorizes the applicable action and destination.
+This checklist separates source publication from a version tag, GitHub Release,
+deployment or release workflow. No tagged release has been created.
 
 ## Current owner decision — 2026-10-18
 
-Local commits and preparation through step 6 are authorized. Publication remains
-on hold for a separate owner confirmation. The current second-browser check is
-waived for v0.1.0, not passed. The release will use an audited source snapshot
-with a clean Git root and a GitHub noreply commit email; private development
-history will not be shared. Private vulnerability reporting must be enabled at
-publication. The existing public teaser is not a source-code release.
+The owner authorized replacing the public teaser's `main` history with the
+reviewed clean source history. The guarded update must match the inspected old
+branch head and preserve a local-only backup. Private development history and
+local backup refs must not be pushed. New commits use GitHub noreply metadata.
+
+The current second-browser check is waived for v0.1.0, not passed. GitHub private
+vulnerability reporting stays disabled by explicit owner decision and is not a
+release prerequisite. No private reporting channel is currently established.
+Version tagging, GitHub Release creation, deployment and workflow enablement
+remain separate actions requiring authorization.
 
 ## Required before publication
 
@@ -56,7 +57,7 @@ publication. The existing public teaser is not a source-code release.
 - [ ] Give the owner the exact candidate snapshot hash, proposed `v0.1.0` tag,
   intended repository/destination, release text and assets, final validation
   results, and any unresolved limitations for review.
-- [ ] Obtain explicit authorization for each intended external or Git action:
+- [x] Obtain explicit authorization for source-history replacement only; other actions remain pending:
   commit/push, tagging, release publication, visibility change, deployment or
   workflow enablement. Record the authorized scope before acting. No permission
   for one action implies permission for the others.
@@ -71,6 +72,6 @@ publication. The existing public teaser is not a source-code release.
   outcome and any remaining work; do not mark unchecked gates complete by
   inference.
 
-Until these gates are satisfied and the owner authorizes publication, the
-candidate remains private and unreleased. Existing test counts, prior media
-publication or repository-setup permission do not authorize a launch.
+Source-history replacement is authorized for the reviewed candidate. No approval
+for a tag, GitHub Release, deployment or workflow enablement is implied. Record
+the actual pushed commit and verification outside the self-identifying package.
