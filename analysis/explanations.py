@@ -54,13 +54,15 @@ def _actor_context(message, flow):
             'basis': 'presentation_identity_not_additional_evidence'}
 
 
-def build_explanation_request(bundle, flow, message_ids, *, model):
+def build_explanation_request(bundle, flow, message_ids, *, model, include_milestones=False):
     """Return JSON-serializable context and exact offline response contract.
 
     At most 40 targets; each has its own event plus up to 12 explicitly recorded
     prior dependencies/parent/evidence references. Total JSON is capped at 512000 bytes. Each supplied evidence field is capped
     at 1800 characters. Truncation is presentation-only; originals are untouched.
     """
+    if type(include_milestones) is not bool:
+        raise ValueError("include_milestones must be boolean")
     events, messages = _index(bundle, flow)
     profile = profile_for(bundle)
     if not isinstance(model, str) or not model.strip() or len(model) > 200 or redact(model) != model or any(ord(c) < 32 for c in model):
@@ -94,6 +96,15 @@ def build_explanation_request(bundle, flow, message_ids, *, model):
                                 'annotations': [{'message_id': '<selected ID>', 'text': '<one short line, at most 280 characters>',
                                                  'provenance': {'method': 'offline-development-worker', 'model': model, 'provider': '<provider label>', 'created_at': '<RFC3339 UTC timestamp>', 'adapter_id': profile.adapter_id, 'profile_version': profile.version}, 'basis': '|'.join(BASES), 'event_ids': ['<own event and optional supplied prior event IDs>']}]},
             'targets': targets}
+    request['include_milestones'] = include_milestones
+    if include_milestones:
+        request['instructions'] += (' Also suggest up to three concise achievement milestones per annotation when supported by the supplied evidence, or [] when none is supported. '
+            'Include the milestones key for every selected annotation, using [] for no suggestion. Milestones are always AI-inferred, never verified facts. Use attempt for an attempted action, success or failure only when supported by recorded results, '
+            'and unconfirmed for a source claim without corroborating results or an uncertain outcome. Do not infer success from a source claim alone. '
+            'Each milestone must cite its own target event and only event IDs also cited by its annotation. '
+            'Do not supply actor or time fields; those come from the selected recorded message.')
+        request['response_format']['annotations'][0]['milestones'] = [{'label': '<short achievement, at most 120 characters>',
+            'outcome': 'attempt|success|failure|unconfirmed', 'event_ids': ['<own event and optional annotation event IDs>']}]
     if len(json.dumps(request, ensure_ascii=False).encode('utf-8')) > MAX_REQUEST_BYTES:
         raise ValueError('explanation request exceeds 512000 UTF-8 bytes; select fewer messages')
     return request
@@ -122,7 +133,7 @@ def validate_explanations(bundle, flow, document):
     events, messages = _index(bundle, flow)
     seen = set()
     for item in annotations:
-        require(isinstance(item, dict) and set(item) == ({'message_id', 'text', 'basis', 'event_ids'} | ({'provenance'} if document['version'] == 2 else set())), 'unsupported annotation keys')
+        require(isinstance(item, dict) and set(item) == ({'message_id', 'text', 'basis', 'event_ids'} | ({'provenance'} if document['version'] == 2 else set()) | ({'milestones'} if document['version'] == 2 and 'milestones' in item else set())), 'unsupported annotation keys')
         if document['version'] == 2:
             ip = item['provenance']
             require(isinstance(ip, dict) and set(ip) == {'method', 'model', 'provider', 'created_at', 'adapter_id', 'profile_version'}, 'unsupported item provenance')
@@ -152,16 +163,30 @@ def validate_explanations(bundle, flow, document):
         require(own in refs, 'own event reference required')
         require(set(refs).issubset(_permitted_refs(events[own], events)), 'unconnected or omitted event reference')
         require(all(events[eid].get('sequence', 0) <= events[own].get('sequence', 0) for eid in refs), 'future event reference')
+        if 'milestones' in item:
+            require(document['profile']['version'] >= 2 and item['provenance']['profile_version'] >= 2, 'milestones require profile version 2')
+            milestones = item['milestones']
+            require(isinstance(milestones, list) and len(milestones) <= 3, 'invalid milestones')
+            for milestone in milestones:
+                require(isinstance(milestone, dict) and set(milestone) == {'label', 'outcome', 'event_ids'}, 'unsupported milestone keys')
+                label = milestone['label']
+                require(isinstance(label, str) and label.strip() and len(label) <= 120 and not any(ord(c) < 32 or c in '\u0085\u2028\u2029' for c in label), 'milestone label must be one short line')
+                require(isinstance(milestone['outcome'], str) and milestone['outcome'] in ('attempt', 'success', 'failure', 'unconfirmed'), 'invalid milestone outcome')
+                mr = milestone['event_ids']
+                require(isinstance(mr, list) and mr and all(isinstance(eid, str) for eid in mr) and len(mr) == len(set(mr)) and own in mr and set(mr).issubset(refs), 'invalid milestone evidence references')
     return copy.deepcopy(document)
 
 
-def select_message_ids(bundle, flow, document=None, scope='missing', start_ms=None, end_ms=None):
+def select_message_ids(bundle, flow, document=None, scope='missing', start_ms=None, end_ms=None, include_milestones=False):
     """Select meaningful messages; default resumes only missing useful descriptions."""
+    if type(include_milestones) is not bool:
+        raise ValueError('include_milestones must be boolean')
     if scope not in ('missing', 'interval', 'all'):
         raise ValueError('unsupported selection scope')
     if scope == 'interval' and (type(start_ms) not in (int, float) or type(end_ms) not in (int, float) or not math.isfinite(start_ms) or not math.isfinite(end_ms) or start_ms < 0 or end_ms < start_ms):
         raise ValueError('interval requires ordered start_ms and end_ms')
     annotated = {item['message_id'] for item in validate_explanations(bundle, flow, document)['annotations'] if item['basis'] != 'insufficient_information' and item.get('provenance', {}).get('profile_version') == profile_for(bundle).version} if document else set()
+    enriched = {item['message_id'] for item in document['annotations'] if 'milestones' in item} if document else set()
     events, _ = _index(bundle, flow)
     profile = profile_for(bundle)
     result = []
@@ -173,7 +198,22 @@ def select_message_ids(bundle, flow, document=None, scope='missing', start_ms=No
             offset = message.get('offset_ms')
             if not isinstance(offset, (int, float)) or not start_ms <= offset <= end_ms:
                 continue
-        if scope == 'missing' and (message['id'] in annotated or profile.recorded_description(event) or (isinstance(message.get('description'), dict) and message['description'].get('text', '').strip())):
+        if scope == 'missing' and ((include_milestones and message['id'] in enriched) or (not include_milestones and (message['id'] in annotated or profile.recorded_description(event) or (isinstance(message.get('description'), dict) and message['description'].get('text', '').strip())))):
             continue
         result.append(message['id'])
     return result
+
+
+def validate_request_references(document, request):
+    """Constrain both annotation and nested milestone citations to supplied context."""
+    supplied = {t['message_id']: {e['id'] for e in t['evidence']} for t in request['targets']}
+    for item in document['annotations']:
+        if item['message_id'] not in supplied or not set(item['event_ids']).issubset(supplied[item['message_id']]):
+            raise ValueError('unprovided evidence reference')
+        if request.get('include_milestones', False) and 'milestones' not in item:
+            raise ValueError('requested milestones key is missing')
+        if item.get('milestones') and not request.get('include_milestones', False):
+            raise ValueError('milestones were not requested')
+        for milestone in item.get('milestones', []):
+            if not set(milestone['event_ids']).issubset(supplied[item['message_id']]):
+                raise ValueError('unprovided milestone evidence reference')

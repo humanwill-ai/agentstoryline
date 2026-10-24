@@ -55,7 +55,7 @@ def _short(value):
 @dataclass(frozen=True)
 class ExplanationProfile:
     adapter_id: str
-    version: int = 1
+    version: int = 2
 
     @property
     def identity(self):

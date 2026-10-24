@@ -64,6 +64,9 @@ const setStoryScroll=value=>{storyViewport.scrollLeft=Math.max(0,value);};
 const clock=value=>String(value),$=()=>null,drawDependencies=()=>{};
 let storyZoom=1,storyAxisMode='condensed';
 '''
+        # This marker harness renders Story with no telemetry attachment.
+        script += "\nconst telemetryMode='story',authoritative={};\n"
+        script += 'function decorateTelemetryClip(' + source.split('function decorateTelemetryClip(', 1)[1].split('function inspectStoryActivity(', 1)[0]
         script += helpers + '\nfunction sizeStory(' + size
         script += r'''
 for(const [i,a] of activities.entries()){

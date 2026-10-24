@@ -322,7 +322,121 @@ def _payload(event, files, gaps):
     return value
 
 
+def _stream_response(value):
+    """Derive a display from SSE; the untouched wire body remains evidence.
+
+    Only OpenAI chat delta frames are interpreted. Completion is a wire-format
+    observation, never provider attestation or evidence of tool execution.
+    """
+    issues, choices = set(), {}
+    done = False
+    frames = []
+    data = []
+    for line in value.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        if not line:
+            if data:
+                frames.append("\n".join(data))
+                data = []
+        elif line.startswith("data:"):
+            data.append(line[5:].removeprefix(" "))
+        elif line.startswith(":") or line.split(":", 1)[0] in {"event", "id", "retry"}:
+            continue
+        else:
+            issues.add("unrecognized_sse_line")
+    if data:
+        # An unterminated frame may be a truncated recording, even if JSON parses.
+        frames.append("\n".join(data))
+        issues.add("unterminated_sse_frame")
+    for frame in frames:
+        if done:
+            issues.add("data_after_done")
+            continue
+        if frame.strip() == "[DONE]":
+            done = True
+            continue
+        try:
+            chunk = read_json(frame, "SSE data frame")
+        except BundleValidationError:
+            issues.add("malformed_json_frame")
+            continue
+        if not isinstance(chunk, dict) or not isinstance(chunk.get("choices"), list):
+            issues.add("unsupported_stream_frame")
+            continue
+        for choice in chunk["choices"]:
+            if not isinstance(choice, dict) or type(choice.get("index")) is not int or choice["index"] < 0:
+                issues.add("invalid_choice")
+                continue
+            index = choice["index"]
+            state = choices.setdefault(index, {"text": [], "tools": {}, "finished": False, "finish_reason": None})
+            delta = choice.get("delta")
+            if not isinstance(delta, dict):
+                issues.add("unsupported_choice_payload")
+                continue
+            if state["finished"] and delta:
+                issues.add("delta_after_finish")
+            if choice.get("finish_reason") is not None:
+                state["finished"] = True
+                state["finish_reason"] = choice["finish_reason"]
+            if set(delta) - {"role", "content", "tool_calls"}:
+                issues.add("unsupported_delta_fields")
+            content = delta.get("content")
+            if isinstance(content, str):
+                state["text"].append(content)
+            elif content is not None:
+                issues.add("unsupported_content_delta")
+            calls = delta.get("tool_calls", [])
+            if not isinstance(calls, list):
+                issues.add("invalid_tool_calls")
+                continue
+            for call in calls:
+                if not isinstance(call, dict) or type(call.get("index")) is not int or call["index"] < 0:
+                    issues.add("invalid_tool_delta")
+                    continue
+                tool = state["tools"].setdefault(call["index"], {"id": [], "name": [], "arguments": []})
+                function = call.get("function", {})
+                if not isinstance(function, dict):
+                    issues.add("invalid_tool_function")
+                    continue
+                if call.get("type", "function") != "function" or set(call) - {"index", "id", "type", "function"} or set(function) - {"name", "arguments"}:
+                    issues.add("unsupported_tool_delta_fields")
+                for source, field in ((call, "id"), (function, "name"), (function, "arguments")):
+                    if field in source:
+                        if isinstance(source[field], str):
+                            tool[field].append(source[field])
+                        else:
+                            issues.add("invalid_tool_field")
+    if not done:
+        issues.add("missing_done_marker")
+    if not choices:
+        issues.add("no_supported_choices")
+    blocks = []
+    for index, state in sorted(choices.items()):
+        if not state["finished"]:
+            issues.add("missing_choice_finish")
+        if state["text"]:
+            blocks.append({"type": "text", "text": "".join(state["text"]), "choice_index": index})
+        for tool_index, fragments in sorted(state["tools"].items()):
+            tool = {field: "".join(parts) for field, parts in fragments.items()}
+            if not tool["id"] or not tool["name"]:
+                issues.add("incomplete_tool_identity")
+            try:
+                read_json(tool["arguments"], "stream tool arguments")
+            except BundleValidationError:
+                issues.add("invalid_or_incomplete_tool_arguments")
+            blocks.append({"type": "tool_use", "id": tool["id"] or None,
+                           "name": tool["name"] or None, "input": tool["arguments"],
+                           "choice_index": index, "tool_index": tool_index,
+                           "execution_status": "proposal_only_not_execution"})
+    return {"content": blocks, "stream_decode": {
+        "format": "openai_chat_sse", "basis": "derived_from_retained_wire_body",
+        "status": "partial" if issues else "complete", "done_marker_observed": done,
+        "choice_finish_reasons": {str(index): state["finish_reason"] for index, state in sorted(choices.items())},
+        "issues": sorted(issues)}}
+
+
 def _response(value):
+    if isinstance(value, str) and any(line.startswith("data:") for line in value.splitlines()):
+        return _stream_response(value)
     if not isinstance(value, dict) or not isinstance(value.get("choices"), list):
         return value
     blocks = []
@@ -374,7 +488,7 @@ def _convert(files, omitted):
         "Filesystem snapshot bodies under fs/ are excluded; snapshot metadata and referenced diff blobs are retained. No filesystem restore or Git operation is performed.",
         "Source causes are recorder-declared relationships, not proven dataflow; no canonical dependencies are inferred from them.",
         "tool.call records can be model protocol proposals, not execution. tool.result is source-reported content, not independent proof of execution or success.",
-        "Canonical timestamps use created_at plus authoritative mono_us; original informational wall-clock timestamps are retained in source_record.",
+        "Canonical timestamps use created_at plus source-reported mono_us; original wall-clock timestamps are retained in source_record. Gateway adapter timing may be reconstructed from logs, rather than independently measured monotonic capture.",
         "Model request history remains attached context, not additional invented exchanges; opaque or missing payload content cannot be reconstructed.",
     }
     rows = []
@@ -456,6 +570,10 @@ def _convert(files, omitted):
         elif kind == "model.response":
             data["response"] = _response(value)
             data["resolved_payload"] = value
+            if isinstance(data["response"], dict) and "stream_decode" in data["response"]:
+                decode = data["response"]["stream_decode"]
+                if decode["status"] == "partial":
+                    gaps.add("One or more model SSE responses have partial display decoding; inspect stream_decode issues and the retained wire body for missing, malformed or unsupported data.")
         elif kind in ("tool.call", "shell.exec"):
             data["arguments"] = attrs.get("input", attrs.get("arguments", value if value is not None else attrs))
             data["execution_status"] = "proposal_only_not_execution" if kind == "tool.call" else "source_observed_shell_invocation"

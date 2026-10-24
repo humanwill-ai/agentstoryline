@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.0 — 2026-10-24
+
+Application/source version update; a GitHub release is a separate publication.
+See the [v0.2.0 notes](docs/RELEASE_NOTES_V0_2.md) for scope and limits.
+
+- Combine native OrcaRouter sessions while retaining source attribution and
+  evidence-linked, content-inferred cross-session context.
+- Attach Orca telemetry to Artex recordings with a reviewable match preview and
+  Story, Model telemetry and Both views. Preserve attachment evidence in portable
+  exports; sanitized sharing omits telemetry.
+- Show recorded Artex task/evidence relationships, explicit outcome milestones,
+  and optional, labeled AI milestone suggestions.
+- Add a sanitized Artex + four-session Orca demo and illustrated local import and
+  attachment walkthrough. Original private recordings remain excluded.
+
 ## v0.1.0 — 2026-10-18
 
 AgentStoryline's first public release is a local-first agent-trace viewer.

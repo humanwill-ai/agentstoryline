@@ -140,7 +140,9 @@ def detect_source(source):
         # Artex's bounded decoder is selected by actual zstd magic. Its native
         # parser expects the documented suffix, so normalize a private copy.
         with tempfile.TemporaryDirectory(prefix='agentstoryline-detect-') as temporary:
-            archive_path = Path(temporary) / 'source.tar.zst'
+            # Canonicalize only our private directory: macOS temp roots may
+            # contain the system /var alias, rejected by the strict reader.
+            archive_path = Path(temporary).resolve() / 'source.tar.zst'
             archive_path.write_bytes(raw)
             files = _archive(archive_path)
         kind = _manifest_source_kind(_json(files['manifest.json']))
@@ -227,7 +229,55 @@ def normalize_source(source, state_dir):
     return normalize_native(path, state_dir, kind)
 
 
+def normalize_orca_collection(sources, state_dir):
+    """Atomically publish a validated, explicitly selected Orca collection."""
+    from adapters.orcareplay.collection import import_orca_collection
+    root = _private_root(state_dir)
+    with tempfile.TemporaryDirectory(prefix='.collection-', dir=root) as temporary:
+        staging = Path(temporary)
+        bundle = import_orca_collection(sources, staging / 'bundle')
+        package_path = staging / 'recording.traceforge.json'
+        write_recording(build_payload(bundle, build_observed_timeline(bundle)), package_path)
+        package = load_portable(package_path)
+        write_binding(staging, bundle, recording_fingerprint(bundle))
+        destination = root / uuid.uuid4().hex
+        staging.rename(destination)
+        return package, destination / package_path.name
+
+
 def import_upload(value, state_dir):
+    if not isinstance(value, dict):
+        raise ValueError('upload must be an object')
+    if 'files' in value:
+        rows = value['files']
+        if not isinstance(rows, list) or not 2 <= len(rows) <= 16:
+            raise ValueError('select 2–16 Orca recording files')
+        if any(key in value for key in ('filename', 'source_base64', 'archive_base64')):
+            raise ValueError('choose either a single upload or a collection')
+        total_encoded = sum(len(row.get('source_base64', '')) for row in rows if isinstance(row, dict) and isinstance(row.get('source_base64'), str))
+        if total_encoded > ((MAX_UPLOAD_BYTES + 2) // 3) * 4 + 64:
+            raise ValueError('Orca collection exceeds aggregate upload limit')
+        root = _private_root(state_dir)
+        with tempfile.TemporaryDirectory(prefix='traceforge-upload-') as temporary:
+            sources, total = [], 0
+            for index, row in enumerate(rows):
+                if not isinstance(row, dict):
+                    raise ValueError('invalid Orca upload')
+                name, encoded = row.get('filename'), row.get('source_base64')
+                if (not isinstance(name, str) or len(name) > 255 or '/' in name or '\\' in name
+                        or not name.lower().endswith(('.orca', '.orca.zip')) or not isinstance(encoded, str)):
+                    raise ValueError('collections accept only native .orca or .orca.zip files')
+                try:
+                    raw = base64.b64decode(encoded, validate=True)
+                except (ValueError, binascii.Error) as exc:
+                    raise ValueError('invalid native recording encoding') from exc
+                total += len(raw)
+                if total > MAX_UPLOAD_BYTES:
+                    raise ValueError('Orca collection exceeds aggregate upload limit')
+                source = Path(temporary).resolve() / ('source-%d.orca' % index)
+                source.write_bytes(raw)
+                sources.append(source)
+            return normalize_orca_collection(sources, state_dir)
     filename = value.get('filename')
     encoded = value.get('source_base64', value.get('archive_base64'))
     if (not isinstance(filename, str) or len(filename) > 255 or '/' in filename or '\\' in filename
@@ -242,8 +292,27 @@ def import_upload(value, state_dir):
     if len(raw) > MAX_UPLOAD_BYTES:
         raise ValueError('native recording exceeds upload limit')
     root = _private_root(state_dir)
-    with tempfile.TemporaryDirectory(prefix='.upload-', dir=root) as temporary:
+    with tempfile.TemporaryDirectory(prefix='traceforge-upload-') as temporary:
         suffix = '.tar.zst' if filename.lower().endswith('.tar.zst') else Path(filename).suffix.lower()
-        source = Path(temporary) / ('source' + suffix)
+        source = Path(temporary).resolve() / ('source' + suffix)
         source.write_bytes(raw)
         return normalize_native(source, state_dir)
+
+
+def import_telemetry_upload(value, state_dir):
+    """Import 1-16 native Orca files without changing the active recording."""
+    if not isinstance(value, dict):
+        raise ValueError('telemetry upload must be an object')
+    rows = value.get('files')
+    if not isinstance(rows, list) or not 1 <= len(rows) <= 16:
+        raise ValueError('select 1-16 native Orca recording files')
+    for row in rows:
+        if (not isinstance(row, dict) or not isinstance(row.get('filename'), str)
+                or not row['filename'].lower().endswith(('.orca', '.orca.zip'))):
+            raise ValueError('telemetry accepts only native Orca recording files')
+    upload = {'files': rows} if len(rows) > 1 else dict(rows[0])
+    package, path = import_upload(upload, state_dir)
+    from adapters.registry import source_identity
+    if source_identity(package['payload']['bundle'])['adapter_id'] != 'orcareplay':
+        raise ValueError('telemetry attachment requires OrcaReplay evidence')
+    return package, path

@@ -1,0 +1,50 @@
+{
+  "title": "OrcaTest 1 — sanitized local test capture",
+  "provenance": "Actual Artex and OrcaRouter captures from an owner-authorized scan of a synthetic loopback target. Sanitized derivatives explicitly approved for inclusion; not authored mock transcripts.",
+  "changes": [
+    "Owner public IPv4 replaced with documentation address 192.0.2.1.",
+    "Owner macOS home path replaced with /Users/demo/.",
+    "Orca blob references, byte lengths and event integrity hashes recalculated.",
+    "Artex archive ownership metadata normalized."
+  ],
+  "retained": [
+    "Synthetic fixture username/password/session token and document evidence.",
+    "Recorded timestamps, session IDs, model/tool exchanges and task relationships."
+  ],
+  "scope": "Recorded playback only. No API key, running Artex installation, target server or model inference is required. These files do not execute the captured actions.",
+  "validation": {
+    "artex_events": 602,
+    "matched_exchanges": 29,
+    "orca_only_exchanges": 4,
+    "ambiguous_exchanges": 0,
+    "conflicting_exchanges": 0,
+    "unresolved_sessions": 1
+  },
+  "files": [
+    {
+      "path": "artex/OrcaTest-task-1-native.tar.zst",
+      "sha256": "51eb8afcee085214b229bd5bab71129d20c4759be864fef52b199c662b856b2c",
+      "bytes": 89380
+    },
+    {
+      "path": "orca/run_36524fd8f6747fc2712506d0.orca.zip",
+      "sha256": "2d812421a6b75e318af9d57d8720df92403f26f64a6e08b10988b34af5572a36",
+      "bytes": 77048
+    },
+    {
+      "path": "orca/run_5ec32a87c10ed8175272bfe3.orca.zip",
+      "sha256": "6c735516347f4fe3059df788646a986c174413fe2e405216c70be8988705258d",
+      "bytes": 299828
+    },
+    {
+      "path": "orca/run_78e32c79f75c04aba773d673.orca.zip",
+      "sha256": "a4780f0f1b594545b0db0bb1d4df1720a524cfa525c392b4df0a0a16888d69cd",
+      "bytes": 30199
+    },
+    {
+      "path": "orca/run_91e75b3261e20f42ca1f2f44.orca.zip",
+      "sha256": "6d38eb88fcbb8584120fb13fb8e9afa880aa28f6a94e0c4d139640402d45023f",
+      "bytes": 205933
+    }
+  ]
+}

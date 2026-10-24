@@ -22,6 +22,16 @@ The inspected Artex English checkout contains an AGPL-3.0 root license and a sep
 
 ## Audio and generated recordings
 
+The explicitly approved `examples/orcatest-1/` demo contains sanitized Artex and
+OrcaRouter recordings of a real run against an owner-controlled synthetic local
+target. It includes recorded model exchanges and inherited tool-description
+text; it is not a newly authored mock transcript or a vendored agent runtime.
+The source-code license grant does not relicense that recorded third-party
+material. Original source identifiers and capture provenance are retained.
+See the [demo provenance](examples/orcatest-1/README.md) and its
+[sanitization manifest](examples/orcatest-1/SANITIZATION.json). The five
+`docs/assets/artex-orca-*.png` screenshots show these sanitized demo imports.
+
 Notification audio is optional and supplied by the user with `--sound`; the renderer may embed it in exported HTML and recordings. Without a supplied file, the viewer can generate a notification tone in the browser.
 
 The previously used `mixkit-long-pop-2358.wav` is not included in the source distribution. Mixkit's Sound Effects Free License prohibits redistributing the item in a tool/template or with source files. Do not include it in a source release or public demo recording without separately establishing that the intended distribution is permitted. Public demos should use the generated tone or separately cleared audio.

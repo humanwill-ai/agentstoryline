@@ -32,7 +32,21 @@ class ViewerV1ControlsTests(unittest.TestCase):
 
     def test_native_import_is_bounded_and_service_only(self):
         self.assertIn('/api/import-native', JS)
-        self.assertIn('file.size>32*1024*1024', JS)
+        helper = JS[JS.index('function nativeImportFiles('):JS.index('function initialize(')]
+        script = helper + r"""
+const limit=32*1024*1024,results=[];
+function check(files,kind){try{results.push(nativeImportFiles(files,kind).length);}catch{results.push('rejected');}}
+check([{name:'single.tar',size:limit}],'artex');
+check([{name:'single.tar',size:limit+1}],'artex');
+check([{name:'first.orca',size:limit-1},{name:'second.orca',size:1}],'orcareplay');
+check([{name:'first.orca',size:limit},{name:'second.orca',size:1}],'orcareplay');
+check([{name:'first.orca',size:1},{name:'second.orca',size:1}],'artex');
+check(Array.from({length:17},()=>({name:'session.orca',size:1})),'orcareplay');
+process.stdout.write(JSON.stringify(results));
+"""
+        result=subprocess.check_output(['node','-e',script],text=True)
+        self.assertEqual(json.loads(result),[1,'rejected',2,'rejected','rejected','rejected'])
+        self.assertIn('const files=nativeImportFiles(selectedFiles,',JS)
         self.assertIn('source_base64:btoa(binary)', JS)
         self.assertIn('python3 agentstoryline.py viewer /path/to/recording', JS)
         self.assertIn('\\.jsonl', JS)

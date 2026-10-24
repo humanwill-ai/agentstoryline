@@ -91,6 +91,7 @@ def main(argv=None):
     explain_request.add_argument("output")
     explain_request.add_argument("--message-id", action="append", required=True, help="Selected flow message ID; repeat up to 40 times")
     explain_request.add_argument("--model", required=True, help="Caller-declared offline model label; no provider call")
+    explain_request.add_argument("--include-milestones", action="store_true", help="Request optional evidence-linked AI-inferred milestones alongside descriptions")
     explain_import = commands.add_parser("explanation-import", help="Validate offline descriptions and render a preserved portable recording")
     explain_import.add_argument("recording")
     explain_import.add_argument("response")
@@ -102,22 +103,23 @@ def main(argv=None):
     explain_serve.add_argument("--state-dir", default="work/explanations")
     explain_serve.add_argument("--port", type=int, default=0)
     viewer = commands.add_parser("viewer", help="Open a supported native agent export or portable recording in the local viewer")
-    viewer.add_argument("source", help="Portable JSON, Artex export, OrcaReplay directory/.orca/.orca.zip/plain tar, Codex rollout JSONL, or OTLP JSON; content selects the format")
+    viewer.add_argument("source", nargs="+", help="One recording, or multiple OrcaRouter .orca/.orca.zip files for a combined view. Portable JSON, Artex export, OrcaReplay directory/.orca/.orca.zip/plain tar, Codex rollout JSONL, or OTLP JSON; content selects the format")
     viewer.add_argument("--state-dir", default="work/explanations")
     viewer.add_argument("--port", type=int, default=0)
     args = parser.parse_args(argv)
     try:
         if args.command == "viewer":
-            from web.viewer_import import normalize_source
+            from web.viewer_import import normalize_source, normalize_orca_collection
             from analysis.explanation_service import serve
-            _package, recording = normalize_source(args.source, args.state_dir)
+            _package, recording = (normalize_source(args.source[0], args.state_dir) if len(args.source) == 1
+                                   else normalize_orca_collection(args.source, args.state_dir))
             serve(recording, args.state_dir, args.port)
         elif args.command == "explanation-serve":
             from analysis.explanation_service import serve
             serve(args.recording, args.state_dir, args.port)
         elif args.command == "explanation-request":
             from analysis.explanation_workflow import export_explanation_request
-            print(json.dumps(export_explanation_request(args.recording, args.output, message_ids=args.message_id, model=args.model), indent=2))
+            print(json.dumps(export_explanation_request(args.recording, args.output, message_ids=args.message_id, model=args.model, include_milestones=args.include_milestones), indent=2))
         elif args.command == "explanation-import":
             from analysis.explanation_workflow import import_explanation_response
             print(json.dumps(import_explanation_response(args.recording, args.response, args.output, recording_output=args.recording_output, state_dir=args.state_dir), indent=2))

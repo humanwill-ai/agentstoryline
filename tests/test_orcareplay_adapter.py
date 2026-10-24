@@ -347,6 +347,63 @@ class OrcaReplayAdapterTests(unittest.TestCase):
         path.write_bytes(raw)
         self.assert_rejected(path)
 
+    def test_sse_stream_assembles_text_and_interleaved_tool_proposals(self):
+        chunks = [
+            {"choices": [{"index": 0, "delta": {"role": "assistant", "content": "Read "}}]},
+            {"choices": [{"index": 0, "delta": {"content": "fixture.", "tool_calls": [
+                {"index": 0, "id": "call-a", "type": "function", "function": {"name": "read_", "arguments": '{"path":'}},
+                {"index": 1, "id": "call-b", "function": {"name": "check", "arguments": '{}'}}]}}]},
+            {"choices": [{"index": 0, "delta": {"tool_calls": [
+                {"index": 0, "function": {"name": "fixture", "arguments": '"synthetic"}'}}]}, "finish_reason": "tool_calls"}]},
+            {"choices": [], "usage": {"total_tokens": 12}},
+        ]
+        wire = ": keepalive\r\nevent: message\r\n\r\n" + "".join("data: " + json.dumps(c) + "\r\n\r\n" for c in chunks) + "data: [DONE]\r\n\r\n"
+        raw = wire.encode()
+        digest = hashlib.sha256(raw).hexdigest()
+        ref = {"$blob": "sha256:" + digest, "bytes": len(raw), "media_type": "text/event-stream"}
+        files = fixture_files([event(0, "model.response", payload=ref)])
+        files[f"blobs/{digest[:2]}/{digest}"] = raw
+        self.write(files)
+        bundle = import_orcareplay(self.source, self.destination)
+        data = bundle["events"][0]["data"]
+        response = data["response"]
+        self.assertEqual(response["stream_decode"]["status"], "complete")
+        self.assertEqual(response["content"][0]["text"], "Read fixture.")
+        self.assertEqual([(b["name"], b["input"]) for b in response["content"][1:]],
+                         [("read_fixture", '{"path":"synthetic"}'), ("check", '{}')])
+        self.assertTrue(all(b["execution_status"] == "proposal_only_not_execution" for b in response["content"][1:]))
+        self.assertEqual(data["source_record"]["payload"], ref)
+        self.assertEqual(data["resolved_payload"], wire)
+        self.assertEqual((self.destination / f"artifacts/orcareplay/files/blobs/{digest[:2]}/{digest}").read_bytes(), raw)
+
+    def test_sse_partial_and_unsupported_frames_are_honest(self):
+        from adapters.orcareplay.importer import _response
+        valid = 'data: {"choices":[{"index":0,"delta":{"content":"Partial"}}]}\n\n'
+        cases = [
+            (valid, "missing_done_marker"),
+            (valid + 'data: {bad}\n\ndata: [DONE]\n\n', "malformed_json_frame"),
+            (valid + 'data: {"error":{"message":"synthetic"}}\n\ndata: [DONE]\n\n', "unsupported_stream_frame"),
+            (valid + 'data: [DONE]', "unterminated_sse_frame"),
+            (valid + 'data: [DONE]\n\ndata: {}\n\n', "data_after_done"),
+            ('data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"name":"read","arguments":"{"}}]},"finish_reason":"tool_calls"}]}\n\ndata: [DONE]\n\n', "invalid_or_incomplete_tool_arguments"),
+        ]
+        for wire, issue in cases:
+            with self.subTest(issue=issue):
+                response = _response(wire)
+                self.assertEqual(response["stream_decode"]["status"], "partial")
+                self.assertIn(issue, response["stream_decode"]["issues"])
+        self.assertEqual(_response("ordinary response text"), "ordinary response text")
+
+    def test_sse_multiline_data_and_choices_remain_distinct(self):
+        from adapters.orcareplay.importer import _response
+        wire = ('data: {"choices": [\n'
+                'data: {"index":1,"delta":{"content":"Second"},"finish_reason":"stop"},\n'
+                'data: {"index":0,"delta":{"content":"First"},"finish_reason":"stop"}]}\n\n'
+                'data: [DONE]\n\n')
+        response = _response(wire)
+        self.assertEqual(response["stream_decode"]["status"], "complete")
+        self.assertEqual([(b["choice_index"], b["text"]) for b in response["content"]], [(0, "First"), (1, "Second")])
+
     def test_monotonic_time_authoritative_wall_clock_retained(self):
         rows = [event(0, "run.start"), event(1, "run.end")]
         rows[1]["ts"] = "2020-01-01T00:00:00Z"

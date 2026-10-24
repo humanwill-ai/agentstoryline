@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT/'web/flow.js').read_text()
 HELPERS = SOURCE[SOURCE.index('function artifactIsShared('):SOURCE.index('function inspectArchiveFile(')]
 HARNESS = r'''
-let p={bundle:{manifest:{source:{}}}},current=p,explanationDisposed=false;
+let p={bundle:{manifest:{source:{}}}},current=p,authoritative=p,explanationDisposed=false;
 let explanationService={recording_id:'one',token:'session'},calls=[],pending=null;
 const window={location:{}},explanationServiceOrigin=()=>true;
 const document={createElement:()=>({click(){},set href(v){},set download(v){}})};
@@ -39,6 +39,10 @@ class ArtifactFrontendTests(unittest.TestCase):
         controls=HELPERS[HELPERS.index('function artifactControls'):]
         self.assertNotIn('innerHTML',controls)
         self.assertNotIn('iframe',controls)
+
+    def test_derived_display_uses_authoritative_recording_identity(self):
+        result=evaluate("p={bundle:{manifest:{source:{}}}};fetch=async()=>response({recording_id:'one',text:'derived view evidence'});process.stdout.write(JSON.stringify(await artifactRequest('/api/artifact-preview','opaque')));")
+        self.assertEqual(result['text'], 'derived view evidence')
 
     def test_recording_change_rejects_inflight_response(self):
         result=evaluate("fetch=()=>new Promise(resolve=>pending=resolve);const request=artifactRequest('/api/artifact-preview','opaque').catch(e=>e.message);current={};pending(response({recording_id:'one',text:'stale'}));process.stdout.write(JSON.stringify(await request));")

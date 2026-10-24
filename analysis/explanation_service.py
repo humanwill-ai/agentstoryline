@@ -2,6 +2,7 @@
 import copy
 import datetime
 import hmac
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -12,7 +13,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from analysis.explanation_workflow import load_portable, refresh_flow
-from analysis.explanations import build_explanation_request, validate_explanations, recording_fingerprint, select_message_ids
+from analysis.explanations import build_explanation_request, validate_explanations, recording_fingerprint, select_message_ids, validate_request_references
 from analysis.explanation_provider import generate, validate_endpoint, ProviderError
 from analysis.explanation_profiles import profile_for, redact
 from analysis.explanation_store import AnnotationStore
@@ -22,7 +23,7 @@ from web.branding import embed_brand_assets
 from web.theme import apply_default_flow_theme
 from core.bundle import read_json
 from adapters.registry import source_identity
-from web.viewer_import import import_upload, MAX_UPLOAD_BODY
+from web.viewer_import import import_upload, import_telemetry_upload, MAX_UPLOAD_BODY
 from web.sharing import prepare_share
 from web.artifacts import ArtifactStore
 
@@ -64,6 +65,10 @@ class ExplanationService:
         self.package, self.bundle, self.flow = candidate, bundle, flow
         self.recording_id = fingerprint
         self.artifacts = ArtifactStore(self.state_dir, bundle, fingerprint)
+        telemetry = candidate['payload'].get('telemetry')
+        self.telemetry_artifacts = (ArtifactStore(self.state_dir, telemetry['bundle'], telemetry['telemetry_fingerprint'])
+                                    if telemetry else None)
+        self.telemetry_preview = None
         self.share_preview = None
         self.status.update(state='idle', completed=0, total=0, failed=0, error=None,
                            provider=None, model=None)
@@ -75,22 +80,22 @@ class ExplanationService:
             raise ValueError('invalid model label')
         return value
 
-    def _next_request(self, ids, model):
+    def _next_request(self, ids, model, include_milestones=False):
         size = min(20, len(ids))
         while size:
             try:
                 chosen = ids[:size]
-                return chosen, build_explanation_request(self.bundle, self.flow, chosen, model=model)
+                return chosen, build_explanation_request(self.bundle, self.flow, chosen, model=model, **({"include_milestones": True} if include_milestones else {}))
             except ValueError as exc:
                 if 'exceeds 512000' not in str(exc) or size == 1:
                     raise
                 size = max(1, size // 2)
         raise ValueError('no targets')
 
-    def planned_requests(self, ids, model):
+    def planned_requests(self, ids, model, include_milestones=False):
         offset = 0
         while offset < len(ids):
-            chosen, request = self._next_request(ids[offset:], model)
+            chosen, request = self._next_request(ids[offset:], model, include_milestones)
             yield chosen, request
             offset += len(chosen)
 
@@ -98,9 +103,9 @@ class ExplanationService:
         with self.lock:
             model = self._model(config.get('model') or 'preview')
             ids = select_message_ids(self.bundle, self.flow, self.package['payload'].get('explanations'),
-                scope=config.get('scope', 'missing'), start_ms=config.get('start_ms'), end_ms=config.get('end_ms'))
+                scope=config.get('scope', 'missing'), start_ms=config.get('start_ms'), end_ms=config.get('end_ms'), include_milestones=config.get('include_milestones', False))
             sizes = [len(json.dumps(request, ensure_ascii=False).encode('utf-8'))
-                     for _, request in self.planned_requests(ids, model)]
+                     for _, request in self.planned_requests(ids, model, config.get('include_milestones', False))]
             return {'targets': len(ids), 'batches': len(sizes), 'request_bytes': sum(sizes),
                     'profile': profile_for(self.bundle).identity, 'recording_id': self.recording_id}
 
@@ -138,10 +143,10 @@ class ExplanationService:
                     raise ValueError('invalid API key')
                 config = dict(config, api_key=key, provider_label=label)
                 ids = select_message_ids(self.bundle, self.flow, self.package['payload'].get('explanations'),
-                    scope=config.get('scope', 'missing'), start_ms=config.get('start_ms'), end_ms=config.get('end_ms'))
+                    scope=config.get('scope', 'missing'), start_ms=config.get('start_ms'), end_ms=config.get('end_ms'), include_milestones=config.get('include_milestones', False))
             # Validate every planned batch before the first potentially paid call,
             # retaining only one bounded request at a time.
-            for _chosen, _request in self.planned_requests(ids, config['model']):
+            for _chosen, _request in self.planned_requests(ids, config['model'], config.get('include_milestones', False)):
                 pass
             self.config = config
             self.pending = list(ids)
@@ -153,7 +158,7 @@ class ExplanationService:
     def _work(self):
         try:
             while self.pending and not self.cancelled.is_set():
-                ids, request = self._next_request(self.pending, self.config['model'])
+                ids, request = self._next_request(self.pending, self.config['model'], self.config.get('include_milestones', False))
                 document = self.provider(self.config['endpoint'], self.config['model'], self.config['api_key'], request)
                 if not isinstance(document, dict) or not isinstance(document.get('annotations'), list):
                     raise ValueError('invalid provider document')
@@ -168,6 +173,7 @@ class ExplanationService:
                     item['provenance'] = dict(provenance, created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                                               adapter_id=profile.adapter_id, profile_version=profile.version)
                 document = validate_explanations(self.bundle, self.flow, document)
+                validate_request_references(document, request)
                 with self.lock:
                     merged = self.store.merge(self.bundle, self.flow, document)
                     self.package['payload']['explanations'] = merged
@@ -236,6 +242,81 @@ class ExplanationService:
             self._activate(package, imported=True)
             self.pending = []
             self.config = None
+
+    def prepare_telemetry(self, value):
+        from analysis.telemetry import build_telemetry_attachment
+        with self.lock:
+            self._telemetry_guard(value)
+            self.telemetry_preview = None
+            if source_identity(self.bundle)['adapter_id'] != 'artex':
+                raise ValueError('telemetry requires an Artex primary recording')
+            imported, _path = import_telemetry_upload(value, self.state_dir)
+            candidate = copy.deepcopy(self.package)
+            attachment = build_telemetry_attachment(self.bundle, imported['payload']['bundle'])
+            candidate['payload']['telemetry'] = attachment
+            candidate['payload'].pop('telemetry_views', None)
+            candidate['payload'] = refresh_flow(candidate['payload'])
+            raw = json.dumps(candidate, ensure_ascii=False, allow_nan=False).encode('utf-8')
+            if len(raw) > MAX_BYTES:
+                raise ValueError('portable recording exceeds size limit')
+            # Use the same validator as portable reopen before offering Apply.
+            with tempfile.TemporaryDirectory() as directory:
+                source = Path(directory) / 'candidate.json'
+                source.write_bytes(raw)
+                load_portable(source)
+            preview_id = secrets.token_urlsafe(32)
+            self.telemetry_preview = {'id': preview_id, 'recording_id': self.recording_id,
+                                      'expires': time.monotonic() + 15 * 60, 'package': candidate,
+                                      'base_digest': self._package_digest()}
+            return {'preview_id': preview_id, 'recording_id': self.recording_id,
+                    'summary': copy.deepcopy(attachment['summary']),
+                    'replacing': 'telemetry' in self.package['payload']}
+
+    def _package_digest(self):
+        raw = json.dumps(self.package, sort_keys=True, ensure_ascii=False, allow_nan=False).encode('utf-8')
+        return hashlib.sha256(raw).hexdigest()
+
+    def _telemetry_guard(self, value):
+        if value.get('recording_id') != self.recording_id:
+            raise ValueError('recording changed; reload before continuing')
+        if self.status['state'] == 'running' or offline_status(self)['state'] == 'waiting':
+            raise ValueError('cancel generation before attaching telemetry')
+
+    def apply_telemetry(self, value):
+        with self.lock:
+            self._telemetry_guard(value)
+            preview = self.telemetry_preview
+            supplied = value.get('preview_id')
+            if (preview is None or preview['recording_id'] != self.recording_id
+                    or not isinstance(supplied, str) or not hmac.compare_digest(supplied, preview['id'])
+                    or time.monotonic() >= preview['expires']
+                    or preview['base_digest'] != self._package_digest()):
+                raise ValueError('telemetry preview unavailable; prepare again')
+            self._activate(preview['package'], imported=True)
+
+    def cancel_telemetry(self, value):
+        with self.lock:
+            self._telemetry_guard(value)
+            preview = self.telemetry_preview
+            if preview is not None and value.get('preview_id') == preview['id']:
+                self.telemetry_preview = None
+
+    def artifact_store(self, artifact_id):
+        if self.telemetry_artifacts is not None and artifact_id in self.telemetry_artifacts.allowed:
+            return self.telemetry_artifacts
+        return self.artifacts
+
+    def artifact_preview(self, artifact_id):
+        result = self.artifact_store(artifact_id).preview(artifact_id)
+        result['recording_id'] = self.recording_id
+        return result
+
+    def artifact_listing(self):
+        result = self.artifacts.listing()
+        if self.telemetry_artifacts is not None:
+            for row in self.telemetry_artifacts.listing()['artifacts']:
+                result['artifacts'].append(dict(row, evidence_source='telemetry'))
+        return result
 
     # Compatibility for callers using the pre-multi-adapter service method.
     def import_artex(self, value):
@@ -351,6 +432,7 @@ def make_server(service, port=0):
             try:
                 length = int(self.headers.get('Content-Length', '-1'))
                 limits = {'/api/import-native': MAX_UPLOAD_BODY, '/api/import-artex': MAX_UPLOAD_BODY,
+                          '/api/telemetry-prepare': MAX_UPLOAD_BODY,
                           '/api/share-preview': 128 * 1024, '/api/share-export': 4096}
                 limit = limits.get(self.path, MAX_BYTES * 2 + 1024)
                 if not 0 <= length <= limit or self.headers.get('Transfer-Encoding'):
@@ -368,11 +450,11 @@ def make_server(service, port=0):
                     if self.path == '/api/recording':
                         service.register(read_json(value['recording_json']) if 'recording_json' in value else value['package'])
                     elif self.path == '/api/artifacts':
-                        return self.reply(200, service.artifacts.listing())
+                        return self.reply(200, service.artifact_listing())
                     elif self.path == '/api/artifact-preview':
-                        return self.reply(200, service.artifacts.preview(value.get('artifact_id')))
+                        return self.reply(200, service.artifact_preview(value.get('artifact_id')))
                     elif self.path == '/api/artifact-download':
-                        _row, raw = service.artifacts.read(value.get('artifact_id'))
+                        _row, raw = service.artifact_store(value.get('artifact_id')).read(value.get('artifact_id'))
                         return self.reply(200, raw, 'application/octet-stream', download=True)
                     elif self.path == '/api/share-preview':
                         return self.reply(200, service.preview_share(value))
@@ -380,6 +462,12 @@ def make_server(service, port=0):
                         return self.reply(200, service.export_share(value))
                     elif self.path in ('/api/import-native', '/api/import-artex'):
                         service.import_native(value)
+                    elif self.path == '/api/telemetry-prepare':
+                        return self.reply(200, service.prepare_telemetry(value))
+                    elif self.path == '/api/telemetry-apply':
+                        service.apply_telemetry(value)
+                    elif self.path == '/api/telemetry-cancel':
+                        service.cancel_telemetry(value)
                     elif self.path == '/api/attachments':
                         service.attachments(value['attachments'])
                     elif self.path == '/api/offline-start':

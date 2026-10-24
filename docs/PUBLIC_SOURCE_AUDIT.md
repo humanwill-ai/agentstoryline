@@ -1,6 +1,7 @@
 # Public source package audit
 
-Review date: 2026-10-18. Scope: the current working-tree source package for the
+Original review date: 2026-10-18. The later preparation section below extends
+this historical scope. Scope: the current working-tree source package for the
 AgentStoryline v0.1.0 viewer candidate, including step 5 release materials and the experimental read-only OrcaReplay adapter.
 This is preparation for owner review, not publication authorization or a
 Git-history audit.
@@ -67,7 +68,7 @@ concurrent filesystem mutation.
 | Internal instructions/history/plans | Exclude AGENTS, HANDOFF, IMPLEMENTATION_BRIEF, PYTHON_FIRST_VERIFICATION_PLAN, RELEASE_COMPATIBILITY_CHECKPOINT and RECORDING_INTEROPERABILITY_PLAN. They record internal work/authorization history or links into that history. |
 | Adapter/history guides needing separate public editing | Exclude ARCHITECTURE, ARTEX_ADAPTER, ARTEX_ARCHIVE_COMPATIBILITY, CODEX_ADAPTER, CHAT_EXPLANATIONS, FLOW_VIEWER and ARTEX_VIEWER_V1. These contain private integration pins, local evidence locations, retained-run details, or links to internal planning. Their useful feature descriptions are covered by the current release scope. |
 | Runtime data and Git history | Exclude all work/, recordings/, Git internals, caches, virtual environments, local state, generated private HTML/portable recordings, screenshots, videos, transcripts, attachments, provider output and execution logs except individually reviewed synthetic example/media paths. Tracked status alone never grants inclusion. |
-| Credentials and service material | No environment files, keys, credential stores, private research, paid-provider run evidence, external datasets or provider-generated transcripts are admitted. The optional API client code and documentation are original implementation, not a bundled paid service or captured provider result. |
+| Credentials and service material | No environment files, keys, credential stores, private research or external datasets are admitted. Captured provider results are excluded except for the explicitly approved sanitized OrcaTest demo described below. The optional API client code and documentation are original implementation, not a bundled paid service or captured provider result. |
 | Audio | No WAV or Mixkit asset is allowlisted. The current owner-supplied music MOV is included unchanged; its soundtrack is not claimed to be generated-tone-only or licensed as application source. |
 
 OrcaReplay implementation, including its bounded ZIP reader, adapter tests,
@@ -163,3 +164,52 @@ backup refs are not uploaded. Version tags and GitHub Releases are separate.
 Private vulnerability reporting remains disabled by owner decision, and the
 second-browser check is waived, not passed. The explicitly supplied music MOV
 continues to retain its original author metadata unchanged.
+
+
+## Sanitized Artex + Orca preparation — 2026-10-24
+
+This local preparation adds an owner-authorized sanitized captured demo, distinct
+from the newly authored synthetic fixtures in v0.1.0. The exact required paths are
+`examples/orcatest-1/README.md`, `examples/orcatest-1/SANITIZATION.json`,
+`examples/orcatest-1/artex/OrcaTest-task-1-native.tar.zst`, and these four files
+under `examples/orcatest-1/orca/`:
+
+- `run_36524fd8f6747fc2712506d0.orca.zip`
+- `run_5ec32a87c10ed8175272bfe3.orca.zip`
+- `run_78e32c79f75c04aba773d673.orca.zip`
+- `run_91e75b3261e20f42ca1f2f44.orca.zip`
+
+These are approved derivatives of local test recordings, including retained model
+and tool evidence. They are not represented as wholly authored synthetic data.
+Their README and sanitization manifest describe provenance, transformations and
+remaining evidentiary limitations. Original unsanitized captures, ignored `work/`
+contents, private generated annotations and development Git history stay excluded.
+The exception authorizes these exact demo paths, not other captured transcripts.
+
+`docs/ARTEX_ORCA_WALKTHROUGH.md` and five exact screenshots are required package
+files: `docs/assets/artex-orca-import.png`, `artex-orca-attach.png`,
+`artex-orca-story.png`, `artex-orca-model.png` and `artex-orca-both.png` (all in
+`docs/assets/`). They illustrate importing the sanitized Artex archive, reviewing
+and applying four Orca attachments, and inspecting the three projections. Missing
+required demo or guide assets fail staging rather than silently omitting them.
+The original three optional release-media entries remain separate.
+
+The reviewed implementation additions are `adapters/orcareplay/collection.py`,
+`analysis/artex_relationships.py`, `analysis/correlations.py`,
+`analysis/milestones.py`, `analysis/telemetry.py` and `web/telemetry.py`, with
+individually named regression tests. New user guides are `ARTEX_RELATIONSHIPS`,
+`MILESTONES`, `ORCA_COLLECTIONS` and `TELEMETRY_ATTACHMENTS` under `docs/`.
+The guides distinguish observed source relationships, content-inferred context,
+attachment matches and optional AI annotations. Counts and recorded run labels
+provide demo context; they do not establish causal delegation or independent
+verification. No credentials or private machine paths were found in those four
+guides or the new implementation modules during the packaging review.
+
+The existing eight public-source boundary tests pass after these allowlist
+changes. Once all required assets were present, a complete staged snapshot
+contained 209 files (34,342,154 bytes), with no optional omissions. The trusted
+verifier checked every manifest hash and inventory entry and passed 92 local
+Markdown links. A static local-import check found no missing runtime modules.
+Subsequent source changes require a fresh snapshot and verification; the final
+manifest remains authoritative for exact bytes and package hash. This preparation performs
+no commit, push, publication, deployment or change to repository visibility.

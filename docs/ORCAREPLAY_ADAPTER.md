@@ -63,6 +63,37 @@ HTML retain normalized evidence and source-file inventory, but do not embed
 original source file bytes; exact retained-file access needs the matching local
 import. See [release scope](RELEASE_SCOPE_V0_1.md).
 
+## OrcaRouter gateway presentation
+
+OrcaRouter gateway exports using this container can contain streamed OpenAI-style
+chat responses. The importer assembles supported SSE text and tool-call deltas
+into a derived display response. Exact payloads and source artifacts remain
+available as evidence; incomplete or malformed streams are labeled rather than
+treated as complete answers. This is a bounded chat-stream profile, not support
+for every provider's streaming protocol.
+
+Compact chat folds routing observations into request context only when the
+source explicitly associates them with one request. Full chat and original
+evidence retain those records. A paired request and response may share a model
+entity when their recorded names differ only by the supported OpenAI namespace;
+different resolved models remain distinct. Run keys provide session labels,
+not proof of worker/coordinator roles or cross-session dependencies.
+
+Gateway exports may reconstruct timestamps from request times and latencies.
+Such timestamps preserve the supplied review order but cannot establish actual
+tool execution durations or parallelism. Embedded HTTP results are retained;
+automatic target-event extraction is not part of this gateway profile. No
+login-specific or HTTP-status-only achievement rules are applied. See the
+[generic milestone contract](MILESTONES.md) for explicit source outcomes and
+optional AI-inferred suggestions.
+
+## Combined session view
+
+The local viewer can combine multiple native Orca ZIP recordings and filter
+individual sessions. This path uses Orca data only; it does not import Artex
+exports or infer delegation from timing. See [combined OrcaRouter sessions](ORCA_COLLECTIONS.md)
+for selection limits, identity, timing and correlation boundaries.
+
 ## Input safety limits
 
 The bounded reader limits manifests to 1 MiB, individual input files to 32 MiB,
@@ -103,8 +134,9 @@ sample generation, equivalent directory/plain-tar/native-ZIP import, evidence
 checksums and portable viewer reload. Importer safety/malformed-input checks
 are separate from those example checks. Actual executed results and any upstream compatibility
 checkpoints are recorded in [release validation](RELEASE_VALIDATION.md); this
-guide does not claim unrun checks passed or that a hosted-console export was
-tested. External upstream recordings used for validation are excluded from the
+guide does not claim unrun checks passed. Four private OrcaRouter console
+exports were additionally used for local regression review on 2026-10-24; those
+recordings are not distributed as fixtures. External upstream recordings used for validation are excluded from the
 source package.
 
 Release preparation does not authorize publishing the repository, the source

@@ -1,6 +1,9 @@
 """Evidence-derived presentation model. No execution or behavioral classification."""
 from datetime import datetime, timezone
+from copy import deepcopy
 from urllib.parse import urlsplit
+
+from analysis.correlations import build_orca_correlations
 
 
 def _dict(value):
@@ -179,6 +182,19 @@ def build_storyline(bundle, narrative):
             if ref not in event_activity:
                 continue
             edges.append({'id': 'edge:' + str(len(edges) + 1), 'source_activity_id': event_activity[ref]['id'], 'target_activity_id': event_activity[e['id']]['id'], 'source_event_id': ref, 'target_event_id': e['id'], 'source_ms': offset(ref), 'target_ms': offset(e['id']), 'kind': kind, 'provenance': provenance, 'label': f'{provenance} {kind}'})
+    correlations = build_orca_correlations(bundle)
+    for item in correlations['items']:
+        source_event_id, target_event_id = item['source_event_id'], item['target_event_id']
+        if source_event_id not in event_activity or target_event_id not in event_activity:
+            continue
+        edges.append({'id': 'edge:correlation:' + item['id'],
+                      'source_activity_id': event_activity[source_event_id]['id'],
+                      'target_activity_id': event_activity[target_event_id]['id'],
+                      'source_event_id': source_event_id, 'target_event_id': target_event_id,
+                      'source_ms': offset(source_event_id), 'target_ms': offset(target_event_id),
+                      'kind': 'content_correlation', 'provenance': 'content_inferred',
+                      'label': item['label'], 'correlation_id': item['id'],
+                      'basis': item['matching_method'], 'limitations': item['limitations']})
     chapters = []
     for i, stage in enumerate(narrative.get('stages', [])):
         if not isinstance(stage, dict):
@@ -191,4 +207,48 @@ def build_storyline(bundle, narrative):
         notes.append('Timestamps reverse in recorded event order; chronological position does not establish dependency.')
     if any(t is None for t in stamps.values()):
         notes.append('Some event timestamps are unknown; sequence order is not elapsed time.')
-    return {'version': '1', 'origin_timestamp': origin.isoformat().replace('+00:00', 'Z') if origin else None, 'duration_ms': max((offset(e['id']) for e in events if offset(e['id']) is not None), default=0), 'lanes': lanes, 'activities': activities, 'edges': edges, 'chapters': chapters, 'notes': notes}
+    result = {'version': '1', 'origin_timestamp': origin.isoformat().replace('+00:00', 'Z') if origin else None, 'duration_ms': max((offset(e['id']) for e in events if offset(e['id']) is not None), default=0), 'lanes': lanes, 'activities': activities, 'edges': edges, 'chapters': chapters, 'correlations': correlations, 'notes': notes}
+    return add_artex_relationships(bundle, result)
+
+
+def add_artex_relationships(bundle, storyline):
+    """Project explicit Artex graph/binding rows into a separate edge category.
+
+    Existing runtime dependencies and canonical bundle records are untouched.
+    Rebuilding is idempotent and ignores saved relationship derivations.
+    """
+    from analysis.artex_relationships import build_artex_relationships
+    if _dict(_dict(bundle.get('manifest')).get('source')).get('adapter') != 'artex':
+        return storyline
+    result = deepcopy(storyline)
+    relationships = build_artex_relationships(bundle)
+    result['artex_relationships'] = relationships
+    result['edges'] = [edge for edge in result.get('edges', []) if edge.get('kind') != 'artex_relationship']
+    by_event = {eid: activity for activity in result.get('activities', []) for eid in activity.get('event_ids', [])}
+    events = {event['id']: event for event in bundle.get('events', [])}
+    origin = _time(result.get('origin_timestamp'))
+    def offset(eid):
+        stamp = _time(events[eid].get('timestamp'))
+        return (stamp-origin).total_seconds()*1000 if stamp is not None and origin is not None else None
+    for eid,label in relationships.get('node_labels', {}).items():
+        if eid in by_event:
+            activity = by_event[eid]
+            # Preserve explicit grouping of a model/tool lifecycle unchanged.
+            if activity.get('category') == 'observation':
+                activity['label'] = label
+    for item in relationships['items']:
+        source = item.get('display_source_event_id', item['source_event_id'])
+        target = item.get('display_target_event_id', item['target_event_id'])
+        if source not in by_event or target not in by_event:
+            continue
+        result['edges'].append({'id':'edge:'+item['id'],
+            'kind':'artex_relationship', 'relationship_kind':item['kind'],
+            'relationship_id':item['id'], 'source_activity_id':by_event[source]['id'],
+            'target_activity_id':by_event[target]['id'], 'source_event_id':source,
+            'target_event_id':target, 'source_ms':offset(source), 'target_ms':offset(target),
+            'label':item['label'], 'provenance':item['provenance'],
+            'native_source_event_id':item['source_event_id'], 'native_target_event_id':item['target_event_id'],
+            'display_anchor_basis':deepcopy(item.get('display_anchor_basis', {})),
+            'basis':deepcopy(item['basis']), 'evidence_event_ids':list(item['evidence_event_ids']),
+            'limitations':list(item['limitations'])})
+    return result

@@ -190,7 +190,7 @@ console.log('ok');
 const nodes=new Map(['open-recording','open-script','import-status'].map(id=>[id,{value:'',disabled:false}]));
 const document={getElementById:id=>nodes.get(id)};
 let importInFlight=false,explanationBusy=false,explanationService=null,attachments=[],current={},nativeCalls=[];
-const setupShare=()=>{},setupImportPicker=()=>{},setImportChooserDisabled=()=>{},renderFiles=()=>{};
+const setupTelemetry=()=>{},setupShare=()=>{},setupImportPicker=()=>{},setImportChooserDisabled=()=>{},renderFiles=()=>{};
 const openNativeRecording=async file=>{nativeCalls.push(file.name);};
 const validatePackage=value=>value,reset=()=>{};
 '''
@@ -286,7 +286,9 @@ if(result.children.find(x=>x.classes==='f-action-state').text!=='Result recorded
             request('/api/import-native', {'recording_id': service.recording_id, 'filename': filename,
                 'source_base64': base64.b64encode(raw).decode()}, status=400)
             self.assertEqual((service.recording_id, service.package), (active_id, active_package))
-        self.assertEqual(request('/api/status')['profile'], {'adapter_id': 'generic', 'version': 1})
+        # Status and new handoffs advertise the current enrichment profile.
+        expected_profile = profile_for(service.bundle).identity
+        self.assertEqual(request('/api/status')['profile'], expected_profile)
         package = request('/api/recording')
         self.assertEqual(package['payload']['flow']['time_mode'], 'recorded')
         self.assertTrue(package['payload']['storyline']['activities'])
@@ -311,11 +313,12 @@ if(result.children.find(x=>x.classes==='f-action-state').text!=='Result recorded
         self.assertEqual(request('/api/artifact-download', identity, raw=True), (EXAMPLE / 'events.jsonl').read_bytes())
         self.assertIn('model.request', request('/api/artifact-preview', identity)['text'])
         handoff = request('/api/offline-request', {'recording_id': service.recording_id, 'scope': 'all', 'model': 'synthetic-worker'})
-        self.assertEqual(handoff['profile'], {'adapter_id': 'generic', 'version': 1})
+        self.assertEqual(handoff['profile'], expected_profile)
         documents = []
         for batch in handoff['requests']:
             document = copy.deepcopy(batch['response_format'])
             document['provenance']['provider'] = 'synthetic-worker'
+            # Older profile-v1 annotations without milestones remain importable.
             document['annotations'] = [dict(message_id=t['message_id'], text='Reviews recorded synthetic evidence.',
                 basis='observed_action', event_ids=[t['own_event_id']],
                 provenance=dict(document['provenance'], created_at='2026-10-18T12:00:00Z', adapter_id='generic', profile_version=1))

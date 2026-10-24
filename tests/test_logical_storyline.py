@@ -103,7 +103,7 @@ for(const id of ['time-mode','story-lanes-logical','story-lanes-source'])control
 const activities=[
   {id:'task',lane_id:'raw-task',label:'Original task',category:'observation',start_ms:0,end_ms:0,timing:'instant'},
   {id:'setup',lane_id:'raw-task',label:'Goal initializer',category:'model',start_ms:0,end_ms:700,timing:'interval'},
-  {id:'model',lane_id:'raw-worker',label:'Model exchange',category:'model',start_ms:100,end_ms:700,timing:'interval'},
+  {id:'model',event_ids:['matched-request'],lane_id:'raw-worker',label:'Model exchange',category:'model',start_ms:100,end_ms:700,timing:'interval'},
   {id:'tool',lane_id:'raw-worker',label:'Synthetic request',category:'tool',start_ms:1000,end_ms:9000,timing:'interval'},
   {id:'usage',lane_id:'raw-worker',label:'activity record',category:'observation',start_ms:9001,end_ms:9001,timing:'instant'}
 ];
@@ -116,6 +116,8 @@ const f={logical_storyline:{lanes:[{id:'worker',label:'Worker 1',kind:'worker'},
   {id:'group:tool',entity_id:'worker',label:'Synthetic request',category:'tool',timing:'interval',start_ms:1000,end_ms:9000,source_activity_ids:['tool','usage'],meaningful_activity_ids:['tool'],provenance:'presentation'}],
  annotations:[{activity_id:'task',kind:'task',label:'Original task'},{activity_id:'setup',kind:'setup',label:'Goal initializer'}]}};
 const messages=[{id:'result',activity_id:'tool',semantic_tags:[{kind:'success',label:'Recorded result',event_ids:['result']}]}];
+// Attached Both rendering must restore explicit-match badges after resize.
+const telemetryMode='both',authoritative={telemetry:{matches:[{artex_request_id:'matched-request',orca_request_id:'orca-request'}]}};
 const duration=10000,position=10000,clock=value=>String(value),playing=false,storyFollow=false,untimed=false;
 const storyViewport={clientWidth:1138,scrollLeft:0};
 const storyGeometry=()=>({label:138,width:(parseFloat(storyHost.style.width)||1138)-138}),storyFraction=()=>1,setStoryScroll=value=>{storyViewport.scrollLeft=Math.max(0,value);};
@@ -125,9 +127,16 @@ let storyZoom=1,storyDrag=null;
 let storyLaneMode='logical',storyAxisMode='condensed',dependencySvg=null,allDependencies=true,selectedActivity=null;
 const buildStoryMarkerLegend=()=>{},buildDependencies=()=>{dependencySvg=n('svg');storyHost.append(dependencySvg);},inspectStoryActivity=()=>{},inspectEdge=()=>{};
 '''
+        script += helper('sourceSessionId(', 'nativeImportFiles(')
+        script += "\nconst events=new Map(),sessionFilter='',matchesSession=item=>sessionMatches(item,sessionFilter,events,activities);\n"
         script += helper('storyLaneView(', 'inspectStoryActivity(')
+        script += helper('matchedArtexEvents(', 'artexRecordedRelationships(')
+        script += helper('decorateTelemetryClip(', 'inspectStoryActivity(')
         script += helper('appendStoryRow(', 'buildStory(')
         script += helper('buildStory(', 'setupStoryLaneModes(')
+        script += helper('artexRelationshipVisible(', 'renderSourceBadge(')
+        script += '\nconst artexRelationships=[],relationshipKinds={},selectedRelationship=null,isBothCorrelations=false,relationshipLayer="all";\n'
+        script += helper('linkLayerVisible(', 'drawDependencies(')
         script += helper('drawDependencies(', 'buildDependencies(')
         script += helper('sizeStory(', 'setupStoryNavigation(')
         script += '\n'.join(line for line in SOURCE.splitlines() if line.startswith((
@@ -149,6 +158,12 @@ for(const mode of ['logical','source','logical']){
     assert.equal(primary.length,1,'source mode retains each observed activity anchor');
     assert.equal(primary[0].style.left,(activity.start_ms??activity.end_ms)/10000*100+'%');
   }
+  const model=clips.find(c=>c.dataset.id===(mode==='logical'?'group:model':'model'));
+  assert.equal(model.querySelectorAll('.f-telemetry-badge').length,1,'resize restores matched badge for source and grouped model clips');
+  assert.equal(model.querySelector('.f-telemetry-badge').textContent,'↔');
+  assert.equal(model.querySelector('.f-telemetry-badge').attributes['aria-label'],'Artex + Orca · matched evidence');
+  decorateTelemetryClip(model,mode==='logical'?f.logical_storyline.activity_groups[0]:activities.find(a=>a.id==='model'));
+  assert.equal(model.querySelectorAll('.f-telemetry-badge').length,1,'decoration is idempotent');
   const tool=clips.find(c=>c.dataset.id===(mode==='logical'?'group:tool':'tool')&&c.dataset.contact!=='true');
   assert.equal(tool.querySelector('.f-story-marker').textContent,'💡');
   assert.ok(tool.attributes['aria-label'].includes('Recorded result'));

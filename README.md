@@ -2,7 +2,7 @@
 
 <img src="web/assets/sleepy-replicant-512.png" alt="Sleepy Replicant — AgentStoryline’s robot detective with a coffee cup" width="160" height="160">
 
-AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.1 is a viewer release scope; playback never executes recorded commands or tools.** [AgentStoryline v0.1.0](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0) was released on 2026-10-18. Source agents and telemetry systems remain independent projects. See the [v0.1 release scope](docs/RELEASE_SCOPE_V0_1.md).
+AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.2.0 retains the viewer scope; playback never executes recorded commands or tools.** See the [v0.2.0 application/source notes](docs/RELEASE_NOTES_V0_2.md). The historical [GitHub v0.1.0 release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0) was published on 2026-10-18; GitHub releases are published separately from application/source updates. Source agents and telemetry systems remain independent projects.
 
 <img src="docs/assets/agentstoryline-overview.png" alt="AgentStoryline Spotlight theme showing a synthetic Artex storyline and recorded conversation" width="900">
 
@@ -14,13 +14,13 @@ Python 3.10+ and the standard library are sufficient for the viewer. Native Arte
 
 `agentstoryline.py` is the preferred command. The compatibility entry point `traceforge.py`, existing `.traceforge.json` files, bundle schema identifiers and local saved-description state remain supported. Compatibility identifiers and original source evidence retain their existing names.
 
-The released application version is `0.1.0`:
+The application version is `0.2.0`:
 
 ```bash
 python3 agentstoryline.py --version
 ```
 
-See the [v0.1.0 release notes](docs/RELEASE_NOTES_V0_1.md), [changelog](CHANGELOG.md), [contribution guide](CONTRIBUTING.md), and [security policy](SECURITY.md). Maintainers can use the [release commands](docs/RELEASE_COMMANDS.md) and [publication checklist](docs/PUBLICATION_CHECKLIST.md) to prepare and review a deterministic source candidate.
+See the [v0.2.0 notes](docs/RELEASE_NOTES_V0_2.md), [changelog](CHANGELOG.md), [contribution guide](CONTRIBUTING.md), and [security policy](SECURITY.md). Maintainers can use the [release commands](docs/RELEASE_COMMANDS.md) and [publication checklist](docs/PUBLICATION_CHECKLIST.md) to prepare and review a deterministic source candidate.
 
 ## Try the synthetic viewer
 
@@ -48,6 +48,8 @@ python3 agentstoryline.py viewer /path/to/orcareplay-trajectory.orca.zip --state
 
 The loopback service detects supported native input, normalizes it and retains imported evidence under unique private state paths. It does not overwrite the source. In the served viewer, **Import recording** presents the Artex, Codex, OTLP, OrcaReplay and portable AgentStoryline choices before opening the local file picker; content detection remains authoritative. The standalone HTML viewer opens portable recordings, while native and telemetry import requires the local service. `explanation-serve` remains a compatibility command for existing portable recordings. Codex `exec --json` is a separate event stream and is reported as unsupported rather than misidentified as a native rollout. Unknown JSON is rejected instead of guessed to be Artex.
 
+Try the [illustrated Artex + Orca walkthrough](docs/ARTEX_ORCA_WALKTHROUGH.md) with the included sanitized demo: import Artex first, then optionally attach model telemetry and compare Story, Model telemetry and Both.
+
 The viewer combines a storyline with animated chat or terminal messages, single/multiple chats, an evidence inspector and optional notification audio. Choose **Green**, **Spotlight** (the default), or **Dark** in the Theme menu. **Recorded playback reveals recorded messages; it never executes tools.** Smart pacing condenses waits for reading; Recorded pacing follows original elapsed timing. Neither changes evidence timestamps. Scrub by dragging the storyline playhead, and click a message or milestone to inspect its evidence.
 
 The Artex adapter accepts TaskArchiveSnapshot formats 1–3, including exports from the authenticated, read-only `GET /api/tasks/{id}/recording-export` endpoint. Prefer that endpoint for active tasks; it does not invoke archive lifecycle changes. Historical exports remain partial when data was not captured. AgentStoryline does not need Artex installed to inspect them.
@@ -56,9 +58,11 @@ Native archives retain bounded transcript and workspace files with checksums. Tr
 
 ## Improve descriptions optionally
 
-In the served viewer, choose **Improve descriptions**. Missing descriptions are selected by default. **Offline / Codex session** queues a bound local job for a worker in the existing session; AgentStoryline cannot awaken Codex automatically or run a local model. **API** uses an explicitly chosen provider endpoint, model and session key. Import and playback do not start generation.
+In the served viewer, choose **Improve descriptions**. With telemetry attached, generation currently operates on the Artex **Story**; its explanations also appear in **Both**. Missing descriptions are selected by default. **Offline / Codex session** queues a bound local job for a worker in the existing session; AgentStoryline cannot awaken Codex automatically or run a local model. **API** uses an explicitly chosen provider endpoint, model and session key. Import and playback do not start generation.
 
 Annotations are evidence-linked interpretations, stored separately with recoverable revisions. **Text → Original / Explained** chooses which text is displayed. Validation checks structure and citations; it does not establish factual correctness. Artex uses its dedicated profile; other sources use a conservative generic profile. See [description workflow and limits](docs/RELEASE_SCOPE_V0_1.md#optional-descriptions).
+
+Milestones depend on supported source outcome evidence. Optional **Suggest milestones (AI-inferred)** is off by default; suggestions appear only after generation in **Explained** mode and may return none. Ordinary tool completion or model prose does not guarantee a milestone. See [milestone contracts and limits](docs/MILESTONES.md).
 
 ## Save portable copies
 
@@ -78,7 +82,7 @@ Artex archive import is supported; Codex native-rollout, offline OTLP protobuf-J
 
 The common bundle remains schema `0.1` and the portable recording envelope remains version `1`. OTLP support is a pinned, offline protobuf-JSON profile with conservative GenAI mapping; it is not a live collector or a claim of universal OpenTelemetry compatibility. OrcaReplay native `.orca`/`.orca.zip` files are ZIP archives; plain tar is an additional import convenience. Imports retain manifest, event and referenced blob evidence, including recorded snapshot metadata and diffs; they do not restore a filesystem or Git state. LiteLLM and JEV-specific import or interpretation remain future work.
 
-Procedural execution is outside v0.1. Existing replay and generated-workflow modules remain experimental development references, with their explicit authorization and local scope controls. See [replay contract](docs/REPLAY.md) and [generated workflow](docs/GENERATED_WORKFLOW.md). A recording format does not establish execution portability.
+Procedural execution is outside v0.2. Existing replay and generated-workflow modules remain experimental development references, with their explicit authorization and local scope controls. See [replay contract](docs/REPLAY.md) and [generated workflow](docs/GENERATED_WORKFLOW.md). A recording format does not establish execution portability.
 
 ## Development and repository relationship
 
@@ -88,4 +92,4 @@ python3 -m unittest discover -s tests -v
 
 `contracts/` describes recordings; `core/` validates them; `adapters/` translates source formats; `analysis/` handles interpretations; `web/` presents evidence and derivative sharing. Experimental `replay/` remains a separate execution boundary.
 
-Original AgentStoryline code is licensed under Apache-2.0; see [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md). Imported recordings and third-party assets retain their own rights. Preserve source notices and licenses. Real recordings, credentials and private research do not belong in Git or release artifacts. See [release validation](docs/RELEASE_VALIDATION.md) and the [public source audit](docs/PUBLIC_SOURCE_AUDIT.md) for readiness and packaging boundaries.
+Original AgentStoryline code is licensed under Apache-2.0; see [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md). Imported recordings and third-party assets retain their own rights. Preserve source notices and licenses. Real recordings, credentials and private research do not belong in Git or release artifacts. The explicitly authorized [sanitized OrcaTest 1 demo](examples/orcatest-1/README.md), captured against a local synthetic fixture, is a documented exception; its retained credentials are synthetic. See [release validation](docs/RELEASE_VALIDATION.md) and the [public source audit](docs/PUBLIC_SOURCE_AUDIT.md) for readiness and packaging boundaries.

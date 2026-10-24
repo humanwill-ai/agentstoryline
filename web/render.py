@@ -67,6 +67,9 @@ def render_payload(payload, destination, *, view="flow", recording_output=None, 
     """Render a prepared display payload without rebuilding its preserved evidence."""
     if view not in ("flow", "evidence"):
         raise ValueError("view must be flow or evidence")
+    if 'telemetry' in payload:
+        from web.telemetry import build_telemetry_views
+        payload = build_telemetry_views(payload)
     path = Path(destination)
     outputs = [path] + ([Path(recording_output)] if recording_output is not None else [])
     if len({output.resolve() for output in outputs}) != len(outputs):

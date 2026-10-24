@@ -7,7 +7,7 @@ import tempfile
 
 from analysis.explanation_profiles import profile_for, redact
 from analysis.explanation_store import merge_documents
-from analysis.explanations import select_message_ids, validate_explanations
+from analysis.explanations import validate_request_references, select_message_ids, validate_explanations
 from core.bundle import read_json
 
 MAX_HANDOFF_BYTES = 16 * 1024 * 1024
@@ -33,7 +33,7 @@ def export_request_set(service, config):
     try:
         model = service._model(config.get('model') or 'gpt-6.1-sol')
         ids = select_message_ids(service.bundle, service.flow, service.package['payload'].get('explanations'),
-            scope=config.get('scope', 'missing'), start_ms=config.get('start_ms'), end_ms=config.get('end_ms'))
+            scope=config.get('scope', 'missing'), start_ms=config.get('start_ms'), end_ms=config.get('end_ms'), include_milestones=config.get('include_milestones', False))
         if not 1 <= len(ids) <= 5000:
             _fail('Offline handoff requires between 1 and 5000 selected targets.')
         envelope = {'format': 'traceforge-explanation-request-set', 'version': 1,
@@ -49,7 +49,7 @@ def export_request_set(service, config):
                 'request_id': '<copy request_id>', 'bundle_sha256': service.recording_id,
                 'responses': ['<one v1 or v2 explanation document per complete supplied batch>']}, 'requests': []}
         envelope['response_format']['request_id'] = envelope['request_id']
-        for _, request in service.planned_requests(ids, model):
+        for _, request in service.planned_requests(ids, model, config.get('include_milestones', False)):
             envelope['requests'].append(request)
             if len(json.dumps(envelope, ensure_ascii=False, allow_nan=False).encode()) > MAX_HANDOFF_BYTES:
                 _fail('Offline request-set exceeds the 16 MiB export limit.')
@@ -134,6 +134,7 @@ def import_response_set(service, config):
             supplied = {t['message_id']: {e['id'] for e in t['evidence']} for t in request['targets']}
             if any(not set(a['event_ids']).issubset(supplied[a['message_id']]) for a in document['annotations']):
                 _fail('Offline response references evidence outside its exported context.')
+            validate_request_references(document, request)
             if redact(document) != document:
                 _fail('Offline response contains credential-like values.')
             documents.append(document)

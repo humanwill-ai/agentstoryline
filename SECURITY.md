@@ -1,6 +1,6 @@
 # Security policy
 
-AgentStoryline v0.1 is a local-first agent-trace viewer. Import and playback must
+AgentStoryline is a local-first agent-trace viewer. Import and playback must
 treat recordings, messages, scripts and retained files as untrusted, inert data.
 Procedural execution is outside this release's scope. Artex import is supported;
 Codex native rollout, offline OTLP protobuf-JSON and OrcaReplay imports are experimental. See
@@ -40,7 +40,7 @@ those actions.
 ## Operational limits
 
 The local service is intended for loopback use. Hosted or public-network
-deployment and multi-user isolation are outside v0.1. Keep recordings and state
+deployment and multi-user isolation remain outside the viewer scope. Keep recordings and state
 private and review retained original files before distributing any export.
 Normal JSON/HTML export preserves content; it is not redaction. Experimental
 sharing offers a reviewed derivative, but automatic redaction cannot guarantee
@@ -53,7 +53,9 @@ validated descriptions remain interpretations rather than verified facts.
 
 ## Version and maintenance status
 
-v0.1.0 is the initial viewer release, published on 2026-10-18. No independent
+v0.2.0 adds combined Artex/OrcaRouter review while retaining the viewer security
+boundaries. See the [v0.2.0 notes](docs/RELEASE_NOTES_V0_2.md).
+v0.1.0 was the initial viewer release, published on 2026-10-18. No independent
 security review is implied by this policy. There is no maintenance commitment
 for older prototypes, experimental execution modules or independent source-agent
 projects. Report issues against the current code with the precise revision and

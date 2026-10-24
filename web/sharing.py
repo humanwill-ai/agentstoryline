@@ -18,7 +18,7 @@ _PROTECTED = frozenset(('id', 'run_id', 'parent_id', 'call_id', 'event_id', 'mes
     'actor_id', 'entity_id', 'activity_id', 'lane_id', 'source_event_id', 'target_event_id',
     'source_activity_id', 'target_activity_id', 'event_ids', 'evidence_refs', 'dependencies',
     'schema_version', 'version', 'kind', 'provenance', 'basis', 'method', 'adapter_id',
-    'profile_version', 'timestamp', 'started_at', 'created_at', 'sequence', 'status'))
+    'profile_version', 'outcome', 'timestamp', 'started_at', 'created_at', 'sequence', 'status'))
 _CREDENTIAL = re.compile(r'(?i)(?:^|[_\- ])(?:password|passwd|secret|token|api[_\- ]?key|authorization|cookie|credential|access[_\- ]?key|private[_\- ]?key)(?:$|[_\- ])')
 def _credential_key(key):
     normalized = re.sub(r'[^a-z0-9]', '', key.lower())
@@ -83,6 +83,23 @@ def _validate(package):
     for event in core['events']:
         event.pop('artifact_refs', None)
     validate_bundle(core)
+    event_ids = {event['id'] for event in p['bundle']['events']}
+    for message in p['flow']['messages']:
+        if 'milestones' not in message:
+            continue
+        milestones = message['milestones']
+        if not isinstance(milestones, list) or len(milestones) > 16:
+            raise ValueError('invalid source milestones')
+        own = message.get('event_ids')
+        for item in milestones:
+            if (not isinstance(item, dict) or set(item) != {'label', 'outcome', 'event_ids', 'provenance', 'basis'}
+                    or not isinstance(item['label'], str) or not item['label'].strip() or len(item['label']) > 120
+                    or any(ord(c) < 32 or ord(c) == 127 or c in '\u0085\u2028\u2029' for c in item['label'])
+                    or not isinstance(item['outcome'], str) or item['outcome'] not in ('attempt', 'success', 'failure', 'unconfirmed')
+                    or item['provenance'] != 'source_reported' or item['basis'] != 'explicit_source_outcome'
+                    or not isinstance(own, list) or len(own) != 1 or own[0] not in event_ids
+                    or item['event_ids'] != own):
+                raise ValueError('invalid source milestone')
     if p.get('explanations') is not None:
         validate_explanations(p['bundle'], p['flow'], p['explanations'])
     files = package['attachments']
@@ -227,8 +244,8 @@ def prepare_share(package, options=None):
                 return child in ('model.request', 'model.response', 'tool.start', 'tool.end', 'run.start', 'run.end', 'observation', 'model', 'tool', 'run', 'dependency', 'parent', 'evidence', 'agent', 'target', 'worker', 'coordinator', 'setup')
             return key == 'id' or key.endswith(('_id', '_ids')) or key == 'evidence_refs'
         if path[:3] == ('payload', 'flow', 'messages'):
-            if (len(path) == 5 and path[4] == 'description') or (len(path) == 6 and path[4] in ('context', 'semantic_tags', 'dependencies')):
-                return key in ('event_id', 'event_ids', 'evidence_refs', 'basis', 'provenance', 'scope')
+            if (len(path) == 5 and path[4] == 'description') or (len(path) == 6 and path[4] in ('context', 'semantic_tags', 'dependencies', 'milestones')):
+                return key in ('event_id', 'event_ids', 'evidence_refs', 'basis', 'provenance', 'scope', 'outcome')
         if path[:2] == ('payload', 'explanations'):
             return key in _PROTECTED
         if path[:3] == ('payload', 'replay', 'steps') and len(path) == 4:
@@ -270,7 +287,13 @@ def prepare_share(package, options=None):
                 return json.dumps(walk(parsed, depth=depth + 1, free=free, path=path), ensure_ascii=False)
             return text(value)
         return value
-    result = walk(package)
+    # Cross-source content hashes become invalid after redaction. Keep the
+    # sanitized derivative primary-only; ordinary Export retains the attachment.
+    share_source = dict(package, payload=dict(package['payload']))
+    had_telemetry = 'telemetry' in share_source['payload']
+    share_source['payload'].pop('telemetry', None)
+    share_source['payload'].pop('telemetry_views', None)
+    result = walk(share_source)
     omitted['attachments'] = len(package['attachments'])
     result['attachments'] = []
     p = result['payload']
@@ -326,8 +349,10 @@ def prepare_share(package, options=None):
     report = {'rule_counts': {k: v for k, v in sorted(counts.items()) if v},
               'omitted_attachments': omitted['attachments'],
               'omitted_original_artifacts': omitted['original_artifacts'],
-              'omitted_audio': omitted['audio'], 'review_required': True,
+              'omitted_audio': omitted['audio'], 'omitted_telemetry': had_telemetry, 'review_required': True,
               'warnings': ['Best-effort sanitization cannot guarantee removal of all sensitive information. Review the exported derivative before sharing.',
                            'Identifiers and evidence references are preserved and may themselves contain sensitive information.',
                            'Existing descriptions were redacted and rebound to this derivative; they were not regenerated or fact-checked.']}
+    if had_telemetry:
+        report['warnings'].append('Attached Orca telemetry omitted: cross-source content matches cannot be retained after redaction. Ordinary Export preserves the original attachment.')
     return {'package': result, 'report': report}

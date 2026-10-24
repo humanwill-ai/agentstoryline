@@ -1,5 +1,42 @@
 # Synthetic release example validation
 
+## 2026-10-24 — Artex and OrcaRouter update preparation
+
+The proposed update includes an explicitly approved sanitized real capture of a
+synthetic local test: see [the walkthrough](ARTEX_ORCA_WALKTHROUGH.md) and
+[demo provenance](../examples/orcatest-1/README.md). It is not a wholly authored
+mock transcript. This section records the preparation checkpoint before the
+owner authorized the v0.2.0 source update; see the [v0.2.0 notes](RELEASE_NOTES_V0_2.md).
+
+- All five demo archives pass import validation; Artex retains 602 events.
+- Sanitizing both captures preserves 29 matched exchanges, four Orca-only
+  exchanges, zero ambiguous/conflicting exchanges and one unresolved session.
+- A fresh local viewer imported the included Artex archive through the picker,
+  attached all four included Orca ZIPs, reviewed the preview and applied it.
+  Story displayed 296 messages and ten native relationships; Model telemetry
+  displayed 226 messages and six inferred relationships; Both displayed 326
+  messages with both relationship sets. No JavaScript errors were observed.
+  Five screenshots capture this sanitized-data workflow.
+- The complete allowlisted source candidate passed **613 tests** in 42.600 seconds
+  with no failures or errors. The private integration-pin test is intentionally
+  excluded. The internal checkout ran 614 tests with four known macOS Documents
+  directory-descriptor permission failures; the candidate under `/private/tmp`
+  avoided that restriction without weakening importer checks.
+- Initial complete-candidate inventory/hash verification and 92 local
+  documentation links passed. Later documentation edits require restaging and
+  verification; the final manifest hash is recorded outside the package.
+- Archive and staged-package reviews found no stored API-key/database-password
+  matches (raw, base64 or URL-encoded), original public IP, private research or
+  unrelated private documents. Synthetic credentials and `/Users/demo/` paths
+  remain by design. The existing owner-supplied music video retains its author
+  metadata under the instruction to distribute it unchanged.
+
+No model inference, target execution, commit, push, tag or release publication
+was performed for this preparation. Validation is local and does not certify all
+browser, exporter or operating-system versions.
+
+## Historical v0.1.0 example validation
+
 Validated locally on 2026-10-18 with Python 3.14.0 on Darwin x86_64. This report
 covers redistributable synthetic examples and their offline recording pipeline.
 It is not evidence of a public release, deployment, model-quality evaluation,

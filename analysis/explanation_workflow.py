@@ -71,6 +71,26 @@ def load_portable(source):
     for event in core['events']:
         event.pop('artifact_refs', None)
     validate_bundle(core)
+    if 'telemetry' in payload:
+        from analysis.telemetry import validate_telemetry_attachment
+        from adapters.registry import source_identity
+        attachment = payload['telemetry']
+        telemetry_bundle = attachment.get('bundle') if isinstance(attachment, dict) else None
+        if (not isinstance(telemetry_bundle, dict)
+                or source_identity(payload['bundle'])['adapter_id'] != 'artex'
+                or source_identity(telemetry_bundle)['adapter_id'] != 'orcareplay'):
+            raise ValueError('telemetry requires Artex primary and OrcaReplay supplemental evidence')
+        events = telemetry_bundle.get('events')
+        if (not isinstance(events, list) or len(events) > 5000
+                or any(not isinstance(event, dict) for event in events)):
+            raise ValueError('telemetry requires at most 5000 event objects')
+        telemetry_core = copy.deepcopy(telemetry_bundle)
+        if isinstance(telemetry_core.get('manifest'), dict):
+            telemetry_core['manifest'].pop('artifact_refs', None)
+        for event in telemetry_core['events']:
+            event.pop('artifact_refs', None)
+        validate_bundle(telemetry_core)
+        validate_telemetry_attachment(payload['bundle'], attachment)
     attachments = package['attachments']
     if not isinstance(attachments, list) or len(attachments) > 20:
         raise ValueError('expected at most 20 inert attachments')
@@ -88,19 +108,24 @@ def refresh_flow(payload):
     from web.flow import build_flow
     from web.pacing import build_smart_pacing
     from web.time_axis import build_story_axis
+    from web.storyline import add_artex_relationships
     result = copy.deepcopy(payload)
+    result['storyline'] = add_artex_relationships(result['bundle'], result['storyline'])
     flow = build_flow(result['bundle'], result['narrative'], result['storyline'])
     flow['story_axis'] = build_story_axis(result['storyline'], flow)
     flow['pacing'] = build_smart_pacing(flow)
     result['flow'] = flow
+    if 'telemetry' in result:
+        from web.telemetry import build_telemetry_views
+        result = build_telemetry_views(result)
     return result
 
 
-def export_explanation_request(source, destination, *, message_ids, model):
+def export_explanation_request(source, destination, *, message_ids, model, include_milestones=False):
     _destinations([source], [destination])
     package = load_portable(source)
     payload = refresh_flow(package['payload'])
-    request = build_explanation_request(payload['bundle'], payload['flow'], message_ids, model=model)
+    request = build_explanation_request(payload['bundle'], payload['flow'], message_ids, model=model, include_milestones=include_milestones)
     output = Path(destination)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x', encoding='utf-8') as handle:

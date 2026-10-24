@@ -7,7 +7,12 @@ from urllib.parse import urlsplit
 
 from web.storyline import _dict, _time
 from analysis.explanation_profiles import profile_for
+from analysis.milestones import source_reported_milestones
 from adapters.registry import source_identity
+
+
+def _session_id(event):
+    return _dict(_dict(event.get('data')).get('source_session')).get('id')
 
 
 def _text(value):
@@ -61,7 +66,7 @@ def _compact_hidden_reason(event, message, adapter_id):
     assuming that an unfamiliar source schema is bookkeeping.
     """
     kind = message['kind']
-    if message.get('semantic_tags') or kind not in ('observation', 'context'):
+    if message.get('semantic_tags') or message.get('milestones') or kind not in ('observation', 'context'):
         return None
     if kind == 'context':
         return 'recorded_context_not_an_additional_exchange'
@@ -98,7 +103,12 @@ def _response_preview(response):
             blocks.append('Proposed tool: ' + str(block.get('name') or '(name not recorded)') + '\n' + _text(block.get('input')))
         else:
             blocks.append(_text(block))
-    return '\n'.join(blocks) or _text(response)
+    preview = '\n'.join(blocks)
+    stream_decode = _dict(response.get('stream_decode'))
+    if stream_decode.get('status') == 'partial':
+        notice = '[Streamed response partially decoded; inspect original evidence for omitted or malformed content.]'
+        return preview + '\n' + notice if preview.strip() else '[Streamed response could not be decoded; inspect original evidence.]'
+    return preview or _text(response)
 
 
 def _http_observation(result):
@@ -326,6 +336,9 @@ def _logical_presentation(messages, actors, events, storyline, agent_name, adapt
         return item
 
     def participant(actor, message):
+        if adapter_id == 'orcareplay' and actor.get('source_session_id'):
+            return entity('agent', actor['source_session_id'], actor['session_label'], actor=actor,
+                          basis='recorded_source_session_not_attested_role', source_session_id=actor['source_session_id'])
         identity = actor.get('participant_identity')
         if identity:
             kind = 'worker' if actor.get('associated_worker_name') else 'coordinator'
@@ -342,7 +355,51 @@ def _logical_presentation(messages, actors, events, storyline, agent_name, adapt
         return entity('records', actor['identity'], actor.get('display_name') or 'Recorded source',
                       actor=actor, primary=False, basis='source_records_without_participant_identity')
 
+    messages_by_event = {eid: m for m in messages for eid in m['event_ids']}
+    requests_by_activity = {m['activity_id']: m for m in messages if m['kind'] == 'model.request' and m.get('activity_id')}
+
+    orca_requests = {}
+    if adapter_id == 'orcareplay':
+        for event in events:
+            if event.get('kind') == 'model.request':
+                record = _dict(_dict(event.get('data')).get('source_record'))
+                request_id = _dict(record.get('attrs')).get('request_id')
+                if request_id:
+                    orca_requests.setdefault((_session_id(event), str(request_id)), []).append(event)
+
     def model(event):
+        # A paired source exchange may spell the same OpenAI model with/without
+        # its namespace. Never alias unpaired records or differing providers.
+        if adapter_id == 'orcareplay' and event.get('kind') == 'model.response':
+            response_message = messages_by_event.get(event['id'], {})
+            request_message = requests_by_activity.get(response_message.get('activity_id'))
+            request_event = by_event[request_message['event_ids'][0]] if request_message else None
+            if request_event is None:
+                record = _dict(_dict(event.get('data')).get('source_record'))
+                request_id = _dict(record.get('attrs')).get('request_id')
+                candidates = orca_requests.get((_session_id(event), str(request_id)), []) if request_id else []
+                if len(candidates) == 1:
+                    candidate_record = _dict(_dict(candidates[0].get('data')).get('source_record'))
+                    if candidate_record.get('seq') in record.get('causes', []):
+                        request_event = candidates[0]
+            if request_event and _session_id(request_event) != _session_id(event):
+                request_event = None
+            if request_event:
+
+                request_identity = _dict(_dict(request_event.get('data')).get('model_identity'))
+                response_identity = _dict(_dict(event.get('data')).get('model_identity'))
+                requested, returned = request_identity.get('model'), response_identity.get('model')
+                if (isinstance(requested, str) and isinstance(returned, str)
+                        and requested != returned and requested.removeprefix('openai/') == returned.removeprefix('openai/')
+                        and re.fullmatch(r'gpt-[\w.-]+', returned.removeprefix('openai/'))
+                        and all(str(i.get(k) or 'openai').lower() == 'openai'
+                                for i in (request_identity, response_identity) for k in ('provider', 'model_provider'))):
+                    result = model(request_event)
+                    result.setdefault('recorded_model_aliases', [requested])
+                    if returned not in result['recorded_model_aliases']:
+                        result['recorded_model_aliases'].append(returned)
+                    result['alias_basis'] = 'paired_source_exchange_openai_namespace_variant'
+                    return result
         data = _dict(event.get('data'))
         record, declared_identity = _dict(data.get('source_record')), _dict(data.get('model_identity'))
         recorded_model = declared_identity.get('model') or record.get('model') or _dict(data.get('request')).get('model') or _dict(data.get('response')).get('model')
@@ -380,7 +437,7 @@ def _logical_presentation(messages, actors, events, storyline, agent_name, adapt
     for message in messages:
         actor = by_actor[message['actor_id']]
         event = by_event[message['event_ids'][0]]
-        owner = participant(actor, message) if message['kind'] != 'model.response' or actor.get('participant_identity') or actor.get('associated_agent_name') else None
+        owner = participant(actor, message) if message['kind'] != 'model.response' or actor.get('participant_identity') or actor.get('associated_agent_name') or actor.get('source_session_id') else None
         if owner:
             attach(owner, message)
         model_entity = model(event) if message['kind'] in ('model.request', 'model.response') else None
@@ -521,9 +578,21 @@ def build_flow(bundle, narrative, storyline):
     messages, histories = [], []
     disclosed_tokens = {}
     denied_baselines = {}
+    session_semantics = {}
     calls = {}
     source = _dict(manifest.get('source'))
     agent_name = str(_dict(manifest.get('agent')).get('name') or 'Recorded source')
+    collection = _dict(source.get('collection')) if adapter_id == 'orcareplay' else {}
+    sessions = {item['id']: item for item in collection.get('sessions', [])
+                if isinstance(item, dict) and isinstance(item.get('id'), str)}
+
+    # Run keys are source context, not attested worker/coordinator roles.
+    orca_run_keys = {str(_dict(_dict(_dict(e.get('data')).get('source_record')).get('attrs')).get('run_key'))
+                     for e in events if adapter_id == 'orcareplay'
+                     and _dict(e.get('data')).get('source_kind') == 'run.start'
+                     and _dict(_dict(_dict(e.get('data')).get('source_record')).get('attrs')).get('run_key')}
+    if len(orca_run_keys) == 1:
+        agent_name = 'Orca run ' + next(iter(orca_run_keys))
 
     def task_input(data):
         """Return only source fields whose recorded schema identifies task input."""
@@ -555,6 +624,9 @@ def build_flow(bundle, narrative, storyline):
         record, meta = _dict(data.get('source_record')), _dict(data.get('recording_metadata'))
         identity = [meta.get('session_id') or data.get('session_id') or record.get('session_id') or source.get('session_id'),
                     data.get('agent_id') or meta.get('agent_id') or record.get('agent_id') or record.get('agent'), record.get('worker')]
+        session_id = _session_id(event) if adapter_id == 'orcareplay' else None
+        if session_id:
+            identity = [session_id, None, None]
         model = _dict(data.get('model_identity')).get('model') or record.get('model') or _dict(data.get('request')).get('model') or _dict(data.get('response')).get('model')
         model = model if role == 'model' else None
         tool = event.get('tool') if role == 'tool' else None
@@ -571,6 +643,11 @@ def build_flow(bundle, narrative, storyline):
             actors.append({'id': aid, 'name': str(tool or label), 'role': role,
                            'model': model, 'identity': copy.deepcopy(identity), 'provenance': 'observed',
                            'model_identity_basis': (copy.deepcopy(data.get('model_identity')) or {'basis': 'recorded_profile_not_provider_attestation'}) if role == 'model' else None})
+        if session_id:
+            item = next(item for item in actors if item['id'] == actor_ids[key])
+            session = sessions.get(session_id, _dict(data.get('source_session')))
+            item.update(source_session_id=session_id, actor_session_id=session_id,
+                        session_label=str(session.get('label') or session.get('run_key') or session.get('run_id') or session_id))
         actor_records.setdefault(actor_ids[key], []).append((record, meta, data))
         return actor_ids[key]
 
@@ -626,6 +703,7 @@ def build_flow(bundle, narrative, storyline):
             parameters = copy.deepcopy(data.get('block'))
         if event.get('tool'):
             title += ': ' + str(event['tool'])
+        semantic_scope = session_semantics.setdefault(_session_id(event), ({}, {})) if adapter_id == 'orcareplay' else (disclosed_tokens, denied_baselines)
         message = {'id': 'message:' + event['id'], 'event_ids': [event['id']],
                    'activity_id': activity.get('id'), 'lane_id': activity.get('lane_id'),
                    'actor_id': actor(event, role), 'kind': kind, 'title': title, 'text': text,
@@ -634,7 +712,11 @@ def build_flow(bundle, narrative, storyline):
                    'provenance': 'observed', 'text_basis': 'presentation_summary' if kind in ('model.request', 'model.response', 'observation', 'tool.start') else 'recorded_content', 'context': [], 'call_id': event.get('call_id'),
                    'dependencies': copy.deepcopy(event.get('dependencies', [])),
                    'parent_id': event.get('parent_id'), 'evidence_refs': copy.deepcopy(event.get('evidence_refs', [])),
-                   'semantic_tags': _semantic_tags(event, disclosed_tokens, denied_baselines, calls, adapter_id)}
+                   'semantic_tags': _semantic_tags(event, semantic_scope[0], semantic_scope[1], calls, adapter_id),
+                   'milestones': source_reported_milestones(event, adapter_id)}
+        if adapter_id == 'orcareplay' and _session_id(event):
+            message.update(source_session_id=_session_id(event), actor_session_id=_session_id(event),
+                           source_session=copy.deepcopy(data['source_session']))
         if isinstance(data.get('execution_status'), str):
             message['execution_status'] = data['execution_status']
         description = explanation_profile.recorded_description(event)
@@ -654,6 +736,28 @@ def build_flow(bundle, narrative, storyline):
                                                'parameters_text': json.dumps(request[field], ensure_ascii=False, indent=2),
                                                'event_ids': [event['id']], 'provenance': 'observed'})
         (histories if history else messages).append(message)
+
+    if adapter_id == 'orcareplay':
+        # Attach only routing observations explicitly citing one request sequence.
+        requests_by_seq = {(_session_id(e), _dict(_dict(e.get('data')).get('source_record')).get('seq')): e['id']
+                           for e in events if e.get('kind') == 'model.request'}
+        messages_by_event = {m['event_ids'][0]: m for m in messages}
+        for e in events:
+            data = _dict(e.get('data'))
+            if data.get('source_kind') != 'route.decision':
+                continue
+            causes = _dict(data.get('source_record')).get('causes', [])
+            targets = {requests_by_seq[(_session_id(e), c)] for c in causes if (_session_id(e), c) in requests_by_seq}
+            if len(targets) != 1:
+                continue
+            target = messages_by_event[next(iter(targets))]
+            routing = messages_by_event[e['id']]
+            routing.update(compact_hidden=True, compact_hidden_basis='source_declared_routing_context_for_request')
+            context = copy.deepcopy(routing)
+            context['title'] = 'Recorded routing decision (source-declared request association)'
+            context['parameters'] = copy.deepcopy(data.get('content'))
+            context['parameters_text'] = json.dumps(data.get('content'), ensure_ascii=False, indent=2)
+            target['context'].append(context)
 
     for history in histories:
         # A history block can cite both endpoints; choose only the canonical first
@@ -693,6 +797,8 @@ def build_flow(bundle, narrative, storyline):
         return str(parts[0]) if len(parts) == 1 else json.dumps(parts, ensure_ascii=False) if parts else None
 
     def participant(item):
+        if adapter_id == 'orcareplay':
+            return None, None
         if item['role'] == 'task':
             return None, None
         session, agent, worker = item['identity']
@@ -738,6 +844,8 @@ def build_flow(bundle, narrative, storyline):
                 item.update(display_name=agent_name + ' agent', display_role='agent', avatar_kind='agent')
         elif item['role'] == 'task':
             item.update(display_name='Original task request', display_role='task input', avatar_kind='task')
+        if adapter_id == 'orcareplay' and item.get('source_session_id') and item['role'] == 'source':
+            item.update(display_name=item['session_label'], display_role='agent', avatar_kind='agent')
         if name:
             item['associated_worker_name' if category == 'worker' else 'associated_coordinator_name'] = name
             item['participant_identity'] = str(identity)
@@ -771,7 +879,12 @@ def build_flow(bundle, narrative, storyline):
     participants = {'workers': list(workers.values()), 'coordinators': list(coordinators.values()),
                     'worker_count': len(workers), 'coordinator_count': len(coordinators),
                     'notes': ['Counts describe distinct identities in displayed records; this capture may be partial.']}
-    if not coordinators:
+    participants['agents'] = [dict(id='participant:' + hashlib.sha256(('orca:' + sid).encode()).hexdigest()[:16],
+                                  source_session_id=sid, identity=sid, display_name=str(session.get('label') or session.get('run_key') or sid),
+                                  display_role='agent', avatar_kind='agent', accent='#60a5fa')
+                              for sid, session in sessions.items()]
+    participants['agent_count'] = len(participants['agents'])
+    if not coordinators and adapter_id != 'orcareplay':
         participants['notes'].append('No distinct coordinator or planner identity was recorded in displayed messages; this does not establish that none existed.')
     order = {e['id']: i for i, e in enumerate(events)}
     messages.sort(key=lambda m: order[m['event_ids'][0]])
@@ -795,7 +908,8 @@ def build_flow(bundle, narrative, storyline):
             message['playback_timing_basis'] = 'recorded_timestamp'
     entities, logical_storyline = _logical_presentation(messages, actors, events, storyline, agent_name, adapter_id)
     return {'version': '1', 'title': 'Artex recorded playback' if adapter_id == 'artex' else agent_name + ' recorded flow', 'messages': messages, 'actors': actors, 'participants': participants,
-            'entities': entities, 'logical_storyline': logical_storyline,
+            'entities': entities, 'logical_storyline': logical_storyline, 'collection': copy.deepcopy(collection),
+            'correlations': copy.deepcopy(storyline.get('correlations', {})),
             'duration_ms': max((m['offset_ms'] for m in messages), default=0),
             'time_mode': 'recorded' if recorded else 'review_sequence', 'notes': list(dict.fromkeys(notes)),
             'origin_timestamp': storyline.get('origin_timestamp'),

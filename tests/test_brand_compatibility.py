@@ -7,6 +7,7 @@ import unittest
 
 from analysis.explanation_workflow import load_portable
 from web.viewer_import import normalize_source
+from agentstoryline_version import __version__
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,7 +25,7 @@ class BrandCompatibilityTests(unittest.TestCase):
             with self.subTest(entrypoint=entrypoint):
                 version_result = self.invoke(entrypoint, '--version')
                 self.assertEqual(version_result.returncode, 0, version_result.stderr)
-                self.assertEqual(version_result.stdout.strip(), 'AgentStoryline 0.1.0')
+                self.assertEqual(version_result.stdout.strip(), 'AgentStoryline ' + __version__)
                 help_result = self.invoke(entrypoint, '--help')
                 self.assertEqual(help_result.returncode, 0, help_result.stderr)
                 self.assertIn('AgentStoryline', help_result.stdout)

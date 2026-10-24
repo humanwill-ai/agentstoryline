@@ -9,32 +9,37 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path(os.environ.get('TRACEFORGE_FLOW_JS', ROOT / 'web' / 'flow.js')).read_text()
 HELPERS = SOURCE[SOURCE.index('function milestoneEntries('):SOURCE.index('function render(notify=')]
+INSPECT_EVENT = SOURCE[SOURCE.index('function inspectEvent('):SOURCE.index('\n', SOURCE.index('function inspectEvent('))]
+TELEMETRY = SOURCE[SOURCE.index('function appendTelemetryEvidence('):SOURCE.index('function messageStamp(')]
 OPEN = SOURCE[SOURCE.index('function open(title)'):SOURCE.index('\n', SOURCE.index('function open(title)'))]
 CLOSE = SOURCE[SOURCE.index("$('close').onclick="):SOURCE.index(";$('design').onchange", SOURCE.index("$('close').onclick="))]
 
 
 def evaluate(expression, rows, shown=None, pairs=None, **variables):
-    values = dict(messages=rows, shown=rows if shown is None else shown, pairs=pairs or [], **variables)
+    values = dict(messages=rows, shown=rows if shown is None else shown, pairs=pairs or [], textMode=variables.pop('textMode', 'original'), annotationRows=variables.pop('annotationRows', []), eventRows=variables.pop('eventRows', []), **variables)
     script = '\n'.join('const ' + key + '=' + json.dumps(value) + ';' for key, value in values.items())
     script += '''
-const actionPairs=new Map(pairs);
+let inspectorRefresh=null;
+const actionPairs=new Map(pairs),annotations=new Map(annotationRows),events=new Map(eventRows.map(e=>[e.id,e]));
+const p={},authoritative=p,story={edges:[]},artexRelationships=[];
 const ownerActor=m=>({id:m.owner_entity_id||m.entity_id||m.actor_id,avatar_kind:m.avatar_kind});
 const entityActor=m=>({id:m.entity_id||m.actor_id});
 const inspected=[];
-const inspect=m=>inspected.push(m.id);
+const inspect=m=>{inspected.push(m.id);open(m.id);};
 const displayName=a=>a?.id||'Recorded source';
 const compactTimestamp=s=>String(s).match(/T(\\d{2}:\\d{2}:\\d{2})/)?.[1]||s;
-function n(tag,text,cls){return {tag,text,className:cls,children:[],dataset:{},append(...x){this.children.push(...x);}};}
+function n(tag,text,cls){return {tag,text,className:cls,children:[],dataset:{},append(...x){this.children.push(...x);},prepend(...x){this.children.unshift(...x);},replaceChildren(...x){this.children=[...x];}};}
+const section=(title,value)=>Object.assign(n('section',title),{value});
 const avatar=a=>n('avatar',a?.id||'Recorded source');
 const btn=(text,click,cls)=>Object.assign(n('button',text,cls),{click});
 const host={dataset:{},children:[],scrollHeight:500,scrollTop:70,clientHeight:100,
  append(...x){for(const child of x){child.remove=()=>this.children.splice(this.children.indexOf(child),1);this.children.push(child);}},replaceChildren(){this.children=[];},get lastElementChild(){return this.children.at(-1);}};
 function classes(){const values=new Set();return {add:x=>values.add(x),remove:x=>values.delete(x),contains:x=>values.has(x)};}
-const root={classList:classes()},rail={inert:false,setAttribute(){},removeAttribute(){}},detail={classList:classes()},detailBody={replaceChildren(){}},close={};
-const $=id=>({'milestone-list':host,milestones:rail,detail,'detail-body':detailBody,close}[id]||host);
+const root={classList:classes()},rail={inert:false,setAttribute(){},removeAttribute(){}},detail={classList:classes()},detailBody=n('div'),close={},detailTitle={};
+const $=id=>({'milestone-list':host,milestones:rail,detail,'detail-body':detailBody,'detail-title':detailTitle,close}[id]||host);
 const timers=[];const setTimeout=fn=>timers.push(fn);
 '''
-    script += HELPERS + '\n' + OPEN + '\n' + CLOSE + ';\nprocess.stdout.write(JSON.stringify(' + expression + '));'
+    script += TELEMETRY + '\n' + INSPECT_EVENT + '\n' + HELPERS + '\n' + OPEN + '\n' + CLOSE + ';\nprocess.stdout.write(JSON.stringify(' + expression + '));'
     return json.loads(subprocess.check_output(['node', '-e', script], text=True))
 
 
@@ -106,13 +111,14 @@ class MilestoneRailTests(unittest.TestCase):
         self.assertEqual(rendered['inspected'], ['one'])
         card = rendered['card']
         self.assertEqual(card['children'][1]['text'], row['semantic_tags'][0]['label'])
-        self.assertEqual(card['children'][3]['dateTime'], row['timestamp'])
-        self.assertEqual(card['children'][3]['text'], '12:34:56')
+        self.assertEqual(card['children'][2]['text'], 'Evidence-derived')
+        self.assertEqual(card['children'][4]['dateTime'], row['timestamp'])
+        self.assertEqual(card['children'][4]['text'], '12:34:56')
 
     def test_untimed_marker_has_no_invented_datetime(self):
         card = evaluate('(()=>{renderMilestones(shown);return host.children[0];})()', [message('untimed')])
-        self.assertEqual(card['children'][3]['text'], 'Time unavailable')
-        self.assertNotIn('dateTime', card['children'][3])
+        self.assertEqual(card['children'][4]['text'], 'Time unavailable')
+        self.assertNotIn('dateTime', card['children'][4])
 
     def test_rebuild_retains_manual_scroll_and_removes_future_entries(self):
         rows = [message('one'), message('two')]
@@ -140,6 +146,26 @@ class MilestoneRailTests(unittest.TestCase):
         result = evaluate('(()=>{host.scrollTop=400;renderMilestones(messages.slice(0,1));open("Synthetic");const opened=host.scrollTop;renderMilestones(messages);const during=host.scrollTop;close.onclick();open("Another selection");timers.shift()();const reopened={inert:rail.inert,hidden:detail.hidden,top:host.scrollTop};close.onclick();timers.shift()();return {opened,during,reopened,top:host.scrollTop,inert:rail.inert,detailHidden:detail.hidden};})()', [message('one'), message('two')])
         self.assertEqual(result, {'opened': 500, 'during': 500, 'reopened': {'inert': False, 'hidden': False, 'top': 500}, 'top': 500, 'inert': False, 'detailHidden': True})
 
+
+
+    def test_milestone_click_opens_provenance_and_nested_evidence(self):
+        row=message('one',semantic_tags=[],milestones=[{'label':'Report export failed','outcome':'failure','event_ids':['event:one'],'provenance':'source_reported','basis':'explicit_source_outcome'}])
+        result=evaluate('(()=>{renderMilestones(shown);host.children[0].click();const milestone=detailBody.children[0];const evidence=detailBody.children.find(x=>x.text==="Milestone evidence → event:one");evidence.click();const original=detailBody.children[0];detailBody.children.find(x=>x.text==="Recorded parent → event:parent").click();return {milestone,original,finalTitle:detailTitle.textContent,finalOriginal:detailBody.children[0]};})()', [row],eventRows=[{'id':'event:one','parent_id':'event:parent','data':{'status':'failed'}},{'id':'event:parent','data':{'report':'synthetic'}}])
+        self.assertEqual(result['milestone']['text'],'Source-reported milestone')
+        self.assertEqual(result['milestone']['value']['outcome'],'failure')
+        self.assertEqual(result['original']['value']['id'],'event:one')
+        self.assertEqual(result['finalTitle'],'event:parent')
+        self.assertEqual(result['finalOriginal']['value']['data'],{'report':'synthetic'})
+
+
+    def test_ai_card_labels_and_outcomes_only_appear_in_explained_mode(self):
+        row=message('one',semantic_tags=[])
+        annotation={'milestones':[{'label':'Draft awaits review','outcome':'unconfirmed','event_ids':['event:one']}]}
+        expression='(()=>{renderMilestones(shown);const card=host.children[0];card.click();return {label:card.children[1].text,provenance:card.children[2].text,outcome:card.children[3].text,detail:detailBody.children[0].text};})()'
+        rendered=evaluate(expression,[row],textMode='explained',annotationRows=[['one',annotation]])
+        self.assertEqual(rendered,{'label':'Draft awaits review','provenance':'AI-inferred','outcome':'? Unconfirmed','detail':'AI-inferred milestone · verify against evidence'})
+        original=evaluate('(()=>{renderMilestones(shown);return host.children.map(x=>x.className);})()',[row],annotationRows=[['one',annotation]])
+        self.assertEqual(original,['f-milestone-empty'])
 
 if __name__ == '__main__':
     unittest.main()
