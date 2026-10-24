@@ -2,7 +2,7 @@
 
 <img src="web/assets/sleepy-replicant-512.png" alt="Sleepy Replicant — AgentStoryline’s robot detective with a coffee cup" width="160" height="160">
 
-AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.2.0 retains the viewer scope; playback never executes recorded commands or tools.** See the [v0.2.0 application/source notes](docs/RELEASE_NOTES_V0_2.md). The historical [GitHub v0.1.0 release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0) was published on 2026-10-18; GitHub releases are published separately from application/source updates. Source agents and telemetry systems remain independent projects.
+AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.2.0 retains the viewer scope; playback never executes recorded commands or tools.** [Download v0.2.0](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.2.0) or read the [release notes](docs/RELEASE_NOTES_V0_2.md). Source agents and telemetry systems remain independent projects.
 
 <img src="docs/assets/agentstoryline-overview.png" alt="AgentStoryline Spotlight theme showing a synthetic Artex storyline and recorded conversation" width="900">
 

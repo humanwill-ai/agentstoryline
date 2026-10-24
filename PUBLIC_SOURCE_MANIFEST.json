@@ -1,5 +1,5 @@
 {
-  "content_sha256": "8af787a17dde756ca7e015688f79c9bbf6b26c4d15c8d8d9ae76cde40b4aeb13",
+  "content_sha256": "6b830cff9d81a18feaa41c9fb425b090b89f7051ec50316391bad46e45b2f241",
   "file_count": 210,
   "files": [
     {
@@ -23,9 +23,9 @@
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
     },
     {
-      "bytes": 12177,
+      "bytes": 12039,
       "path": "README.md",
-      "sha256": "36a7f5b0b775441bf83f14eac8172f082306a785fb7adabb048a74152fd4fab5"
+      "sha256": "a84c8d0b488c0a6ded8e26952660e20e251079fdd6286867cd3cc3e2b5f723c9"
     },
     {
       "bytes": 3495,
@@ -273,9 +273,9 @@
       "sha256": "87b79760b11226bc3f21bf76b37e5bd2729cbe050b0d9cf1c4f8b13d473a27d1"
     },
     {
-      "bytes": 3081,
+      "bytes": 3023,
       "path": "docs/RELEASE_NOTES_V0_2.md",
-      "sha256": "eebe0c2bfef3681627de428c9c3267230a7ee1d6d332795bc883e4bffbe8447a"
+      "sha256": "c6a472460cef0c2ea26d95917f41bcbe69a66be76e401bb5839fab50245e0fcc"
     },
     {
       "bytes": 10292,
@@ -1057,6 +1057,6 @@
   "omitted_optional_files": [],
   "release_version": "0.2.0",
   "scope": "Reviewed current working files only; no Git history or publication.",
-  "total_bytes": 34349549,
+  "total_bytes": 34349353,
   "version": 1
 }

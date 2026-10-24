@@ -1,9 +1,8 @@
 # AgentStoryline v0.2.0 — 2026-10-24
 
-This is an application/source version update. It does not announce a GitHub
-v0.2.0 release or tag. The separately published
-[v0.1.0 GitHub release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.1.0)
-remains historical. AgentStoryline remains a local-first viewer: playback never
+Download the [v0.2.0 GitHub release](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.2.0),
+including the reviewed source and sanitized Artex/Orca demo recordings.
+AgentStoryline remains a local-first viewer: playback never
 executes recorded commands or tools, and procedural replay stays outside this
 version's release scope.
 
