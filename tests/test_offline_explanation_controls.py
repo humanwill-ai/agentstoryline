@@ -28,7 +28,7 @@ class OfflineExplanationControlsTests(unittest.TestCase):
         self.assertNotIn('downloadExplanation(',handler)
         self.assertNotIn('/api/generate',handler)
         poll=SOURCE[SOURCE.index('async function explanationOfflinePoll'):SOURCE.index("$('explanation-offline-start').onclick")]
-        for text in ['Waiting for Codex session. Ask your session to process the pending descriptions; no file path is needed.',"explanationRequest('/api/offline-status')",'epoch!==explanationPollEpoch','explanationOfflinePollInFlight===epoch','await explanationAnnotations(epoch)','await explanationHistory(epoch)']:
+        for text in ['Waiting for Codex session. Action needed: send “Process pending descriptions in AgentStoryline” in your Codex chat. This queue does not notify or start Codex automatically. If you already asked, your session will save the results here. No file path is needed.',"explanationRequest('/api/offline-status')",'epoch!==explanationPollEpoch','explanationOfflinePollInFlight===epoch','await explanationAnnotations(epoch)','await explanationHistory(epoch)']:
             self.assertIn(text,poll)
         self.assertNotIn('setExplanationBusy(true)',poll)
         self.assertNotIn('reset(',poll)

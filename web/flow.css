@@ -488,3 +488,5 @@ body{margin:0;padding:20px;background:#101713;color-scheme:light dark}#tf-flow{m
 #tf-flow.f-both-correlations .f-correlation-endpoint{fill:#c98a35;stroke:var(--f-bg);stroke-width:1;pointer-events:none}
 #tf-flow.f-both-correlations .f-story-row.f-correlation-selected .f-story-lane-label{color:#c98a35;background:color-mix(in srgb,#c98a35 12%,var(--f-surface));border-radius:4px}
 #tf-flow.f-both-correlations .f-story-clip.f-correlation-selected{outline:2px solid #c98a35;outline-offset:2px;box-shadow:0 0 8px #c98a3533}
+
+.f-explanation-panel .f-explanation-checkbox{display:flex;align-items:center;justify-content:flex-start;gap:8px;cursor:pointer}.f-explanation-panel .f-explanation-checkbox input[type="checkbox"]{flex:0 0 16px;width:16px;height:16px;min-width:16px;margin:0;padding:0;accent-color:var(--f-lime,#69a92d)}.f-explanation-panel .f-explanation-checkbox span{line-height:1.4}

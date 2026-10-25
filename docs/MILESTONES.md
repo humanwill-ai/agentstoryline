@@ -28,7 +28,7 @@ own structured outcome fields to the canonical contract.
 
 In **Improve descriptions**, enable **Suggest milestones (AI-inferred)** and
 choose the existing provider/API or offline-session workflow. The checkbox is
-off by default. Generation can add up to three milestone suggestions per message
+checked by default in the UI and can be unchecked. Generation can add up to three milestone suggestions per message
 or explicitly return none. Suggestions cite only supplied evidence and never
 choose an independent actor or timestamp. A source's success claim without
 corroborating results should be `unconfirmed`, not upgraded into proof.

@@ -68,7 +68,7 @@ To use your own API key, start the local viewer as above and load a recording:
 2. Set **Use → API**; the default is Offline / Codex session.
 3. Paste your provider's **API key** (without a `Bearer` prefix) and enter its exact **Model** identifier.
 4. For another compatible provider or gateway, open **Optional details → Provider / gateway endpoint URL** and replace the default `https://api.openai.com/v1` with its API base URL. Do not append `/chat/completions` yourself.
-5. Optionally check **Suggest milestones**, then choose **Generate descriptions**. Missing descriptions are selected by default.
+5. Leave **Suggest milestones** checked, or uncheck it for descriptions only, then choose **Generate descriptions**. Missing descriptions are selected by default.
 6. Close the dialog and select **Text → Explained** to review the results. **Export recording** saves a portable copy with the annotations.
 
 Generation sends selected recording excerpts to the configured provider and may incur charges. AgentStoryline keeps the API key in service memory for generation/retry; it is not included in saved recordings. Import and playback do not start generation. See the [API setup and troubleshooting guide](docs/IMPROVE_DESCRIPTIONS.md) for compatible providers, environment-key configuration and saving results.
@@ -77,7 +77,7 @@ Generation sends selected recording excerpts to the configured provider and may 
 
 Annotations are evidence-linked interpretations, stored separately with recoverable revisions. **Text → Original / Explained** chooses which text is displayed. Validation checks structure and citations; it does not establish factual correctness. Artex uses its dedicated profile; other sources use a conservative generic profile. See [description workflow and limits](docs/RELEASE_SCOPE_V0_1.md#optional-descriptions).
 
-Milestones depend on supported source outcome evidence. Optional **Suggest milestones (AI-inferred)** is off by default; suggestions appear only after generation in **Explained** mode and may return none. Ordinary tool completion or model prose does not guarantee a milestone. See [milestone contracts and limits](docs/MILESTONES.md).
+Milestones depend on supported source outcome evidence. Optional **Suggest milestones (AI-inferred)** is enabled by default in the UI and can be unchecked; suggestions appear only after generation in **Explained** mode and may return none. Ordinary tool completion or model prose does not guarantee a milestone. See [milestone contracts and limits](docs/MILESTONES.md).
 
 ## Save portable copies
 

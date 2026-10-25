@@ -31,12 +31,12 @@ class GenericMilestoneUITests(unittest.TestCase):
         script = helper('validateExplanations') + '\nconst p=' + json.dumps(payload) + ";const results=[];function check(){try{validateExplanations(p);results.push(true)}catch{results.push(false)}}check();p.flow.messages[0].milestones[0].event_ids=['missing'];check();p.flow.messages[0].milestones[0].event_ids=['e'];p.flow.messages[0].milestones[0].provenance='observed';check();process.stdout.write(JSON.stringify(results));"
         self.assertEqual(node(script), [True,False,False])
 
-    def test_opt_in_is_sent_to_api_and_offline_selection(self):
+    def test_milestone_selection_defaults_on_and_is_sent_to_api_and_offline(self):
         self.assertIn("include_milestones:$('explanation-milestones').checked", SOURCE)
         self.assertIn('include_milestones:selected.include_milestones', SOURCE)
         html=(Path(__file__).resolve().parents[1]/'web/flow.html').read_text()
         self.assertIn('id="explanation-milestones" type="checkbox"',html)
-        self.assertNotIn('id="explanation-milestones" type="checkbox" checked',html)
+        self.assertIn('id="explanation-milestones" type="checkbox" checked',html)
 
     def test_ai_profiles_legacy_and_evidence_constraints(self):
         annotation={'message_id':'m','text':'Summarizes the report','basis':'observed_action','event_ids':['e'], 'provenance':{'method':'offline-development-worker','model':'synthetic','provider':'offline','created_at':'2026-01-01T00:00:00Z','adapter_id':'generic','profile_version':1}}

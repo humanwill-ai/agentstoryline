@@ -68,7 +68,8 @@ Keep **Scope → Missing descriptions only** for an initial pass. The preview
 shows eligible message count, batches and context size; it is not a price
 estimate. A recording can require multiple provider requests.
 
-Optionally check **Suggest milestones (AI-inferred)** before clicking
+**Suggest milestones (AI-inferred)** is checked by default; uncheck it for
+descriptions only before clicking
 **Generate descriptions**. When generation completes, close the dialog and
 choose **Text → Explained**. The Original view remains available for comparison.
 Milestone cards appear as their messages are revealed during playback or seeking;

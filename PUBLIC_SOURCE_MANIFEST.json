@@ -1,5 +1,5 @@
 {
-  "content_sha256": "de811e171ded6bf523d9f4b3d5b16e6c9d49e6afa9b049271da2b87850c36002",
+  "content_sha256": "87ca328a8493bb6a467344f6905499448c6ae0c14544a27e64082a3a23b302c9",
   "file_count": 211,
   "files": [
     {
@@ -23,9 +23,9 @@
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
     },
     {
-      "bytes": 13864,
+      "bytes": 13933,
       "path": "README.md",
-      "sha256": "aac6dad09700e632c1887cb6f7e4178d8571cd85363fb5cc305331ff1dbd64ba"
+      "sha256": "8048605f6289141cb92d71ccd30de2d8c589543dffdf9fabf95a4237fdabd672"
     },
     {
       "bytes": 3495,
@@ -233,14 +233,14 @@
       "sha256": "0b122bb657dd903434172c2ccdefc4e550286c089996257ae8a81b1c1ef55c6a"
     },
     {
-      "bytes": 8241,
+      "bytes": 8280,
       "path": "docs/IMPROVE_DESCRIPTIONS.md",
-      "sha256": "85774cef511ae0cad3a5a51f15559e805c7d09530664a15420d8bfeaf9842859"
+      "sha256": "ccd3bea8f51f7167e9c94f252d2adbaef25f3d96c55980b3e89217ebd3fc6205"
     },
     {
-      "bytes": 2783,
+      "bytes": 2818,
       "path": "docs/MILESTONES.md",
-      "sha256": "5d29fac8fc835d29a51de5b4548d67a7c340e9bb575595729aa8552448df777f"
+      "sha256": "2200878422095fa770016aac446f724135e72e5dc2da4305c77188b1bb5a7606"
     },
     {
       "bytes": 9088,
@@ -683,9 +683,9 @@
       "sha256": "42d89ccec02a49cba40eb0d7133645816527a8f064d012907f910af837f82bf1"
     },
     {
-      "bytes": 5238,
+      "bytes": 5254,
       "path": "tests/test_generic_milestone_ui.py",
-      "sha256": "653a6ab1286742927a2ae753b0278cae6feab669fc4c03b5bc0fac5ce136d86b"
+      "sha256": "a8b85531e63467b8627a5d04baef9829832d24e5c154af6fa028ec0f0e41b716"
     },
     {
       "bytes": 1296,
@@ -728,9 +728,9 @@
       "sha256": "28975cefb2773e5d3a98825e111551192bc9dfbf9f949bb128e0b1f44b847a74"
     },
     {
-      "bytes": 7916,
+      "bytes": 8075,
       "path": "tests/test_offline_explanation_controls.py",
-      "sha256": "3544ead3538881367469048b6a7fc5b32ba436d5afa70ee8c846e40f44d5b904"
+      "sha256": "89093da9eb2b0eb37234656a4a031610e7acc6f553ca600762d51c82f82ea21d"
     },
     {
       "bytes": 4474,
@@ -973,19 +973,19 @@
       "sha256": "7447adb418d9b950bd988810fcb4be1c060725e33ce314b5c1d181baab3aec96"
     },
     {
-      "bytes": 69683,
+      "bytes": 70052,
       "path": "web/flow.css",
-      "sha256": "d1e5ce37b1f4da3ed41254a46676298a6016e2cf769d2a4f06ec51d7241c7df7"
+      "sha256": "1116ccc9840bf541c69debe274caf5edb7a5e0ba42e12de425fe451946af87f1"
     },
     {
-      "bytes": 12866,
+      "bytes": 13206,
       "path": "web/flow.html",
-      "sha256": "7e0cc812a770e923ca5d0b7fa5d5160e8463ee19616cf153ef10ff6520589d51"
+      "sha256": "1ab1ba8fd88f304c19f2659aeb4019058684d5182c44e734c2fb5fcd776e98ec"
     },
     {
-      "bytes": 180330,
+      "bytes": 180489,
       "path": "web/flow.js",
-      "sha256": "192778832af042b4d81617a8524f659951041334bec467bd9e119fbcb7f30994"
+      "sha256": "f15a62f924b816b2ea2d21681c28f7a68f0e232680895177009c15a179789a1e"
     },
     {
       "bytes": 57450,
@@ -1062,6 +1062,6 @@
   "omitted_optional_files": [],
   "release_version": "0.2.0",
   "scope": "Reviewed current working files only; no Git history or publication.",
-  "total_bytes": 34359448,
+  "total_bytes": 34360634,
   "version": 1
 }
