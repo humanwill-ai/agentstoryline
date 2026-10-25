@@ -2,7 +2,11 @@
 
 <img src="web/assets/sleepy-replicant-512.png" alt="Sleepy Replicant — AgentStoryline’s robot detective with a coffee cup" width="160" height="160">
 
-AgentStoryline is a local-first agent-trace viewer: import a supported recording, follow its storyline and chat, inspect original evidence, and optionally improve descriptions. **v0.2.0 retains the viewer scope; playback never executes recorded commands or tools.** [Download v0.2.0](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.2.0) or read the [release notes](docs/RELEASE_NOTES_V0_2.md). Source agents and telemetry systems remain independent projects.
+AI agents can perform thousands of actions across model conversations, tool calls and parallel workers. Following what happened—and understanding how one step led to the next—becomes difficult when that activity is scattered across logs. Security teams investigating an incident and researchers studying the behaviour of agents such as Artex need a clear view of the sequence, its participants and the evidence behind it.
+
+**AgentStoryline is a local-first viewer that turns agent recordings into an interactive timeline and chat.** It supports recordings captured at the agent level and model telemetry captured at the AI gateway level. Explore either source on its own, or combine supported sources—currently Artex recordings with OrcaRouter telemetry—to connect agent activity with model exchanges. Inspect original evidence and optionally use AI to add short, evidence-linked descriptions that make the flow easier to follow.
+
+**v0.2.0 is a viewer: playback never executes recorded commands or tools.** [Download v0.2.0](https://github.com/humanwill-ai/agentstoryline/releases/tag/v0.2.0) or read the [release notes](docs/RELEASE_NOTES_V0_2.md). Source agents and telemetry systems remain independent projects.
 
 <img src="docs/assets/agentstoryline-overview.png" alt="AgentStoryline Spotlight theme showing a synthetic Artex storyline and recorded conversation" width="900">
 
@@ -58,7 +62,18 @@ Native archives retain bounded transcript and workspace files with checksums. Tr
 
 ## Improve descriptions optionally
 
-In the served viewer, choose **Improve descriptions**. With telemetry attached, generation currently operates on the Artex **Story**; its explanations also appear in **Both**. Missing descriptions are selected by default. **Offline / Codex session** queues a bound local job for a worker in the existing session; AgentStoryline cannot awaken Codex automatically or run a local model. **API** uses an explicitly chosen provider endpoint, model and session key. Import and playback do not start generation.
+To use your own API key, start the local viewer as above and load a recording:
+
+1. Choose **Improve descriptions**. With Artex + Orca attached, first select **View → Story**.
+2. Set **Use → API**; the default is Offline / Codex session.
+3. Paste your provider's **API key** (without a `Bearer` prefix) and enter its exact **Model** identifier.
+4. For another compatible provider or gateway, open **Optional details → Provider / gateway endpoint URL** and replace the default `https://api.openai.com/v1` with its API base URL. Do not append `/chat/completions` yourself.
+5. Optionally check **Suggest milestones**, then choose **Generate descriptions**. Missing descriptions are selected by default.
+6. Close the dialog and select **Text → Explained** to review the results. **Export recording** saves a portable copy with the annotations.
+
+Generation sends selected recording excerpts to the configured provider and may incur charges. AgentStoryline keeps the API key in service memory for generation/retry; it is not included in saved recordings. Import and playback do not start generation. See the [API setup and troubleshooting guide](docs/IMPROVE_DESCRIPTIONS.md) for compatible providers, environment-key configuration and saving results.
+
+**Offline / Codex session** is the alternative without a separately configured API key: it queues a bound local job for a worker in your existing session. AgentStoryline cannot awaken Codex automatically or run a local model. With telemetry attached, generation targets the Artex Story; those explanations also appear in Both.
 
 Annotations are evidence-linked interpretations, stored separately with recoverable revisions. **Text → Original / Explained** chooses which text is displayed. Validation checks structure and citations; it does not establish factual correctness. Artex uses its dedicated profile; other sources use a conservative generic profile. See [description workflow and limits](docs/RELEASE_SCOPE_V0_1.md#optional-descriptions).
 

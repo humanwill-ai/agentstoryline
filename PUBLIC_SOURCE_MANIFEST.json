@@ -1,6 +1,6 @@
 {
-  "content_sha256": "6b830cff9d81a18feaa41c9fb425b090b89f7051ec50316391bad46e45b2f241",
-  "file_count": 210,
+  "content_sha256": "de811e171ded6bf523d9f4b3d5b16e6c9d49e6afa9b049271da2b87850c36002",
+  "file_count": 211,
   "files": [
     {
       "bytes": 84,
@@ -23,9 +23,9 @@
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
     },
     {
-      "bytes": 12039,
+      "bytes": 13864,
       "path": "README.md",
-      "sha256": "a84c8d0b488c0a6ded8e26952660e20e251079fdd6286867cd3cc3e2b5f723c9"
+      "sha256": "aac6dad09700e632c1887cb6f7e4178d8571cd85363fb5cc305331ff1dbd64ba"
     },
     {
       "bytes": 3495,
@@ -231,6 +231,11 @@
       "bytes": 6633,
       "path": "docs/GENERATED_WORKFLOW.md",
       "sha256": "0b122bb657dd903434172c2ccdefc4e550286c089996257ae8a81b1c1ef55c6a"
+    },
+    {
+      "bytes": 8241,
+      "path": "docs/IMPROVE_DESCRIPTIONS.md",
+      "sha256": "85774cef511ae0cad3a5a51f15559e805c7d09530664a15420d8bfeaf9842859"
     },
     {
       "bytes": 2783,
@@ -468,9 +473,9 @@
       "sha256": "d1d530045558b350f5210e0a685ff17a94e21b5196119741af4bf4cb241d7e46"
     },
     {
-      "bytes": 12405,
+      "bytes": 12434,
       "path": "scripts/build_public_source.py",
-      "sha256": "0818a5fb67a4f3331fa322903097b31c58d7911613eb2a260cec37cef93df260"
+      "sha256": "b1e13c031ac609e7bc314204f7cc1573aa204313c2d159b870aaa5608926a54a"
     },
     {
       "bytes": 5534,
@@ -1057,6 +1062,6 @@
   "omitted_optional_files": [],
   "release_version": "0.2.0",
   "scope": "Reviewed current working files only; no Git history or publication.",
-  "total_bytes": 34349353,
+  "total_bytes": 34359448,
   "version": 1
 }
